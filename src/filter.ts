@@ -1,6 +1,6 @@
 import { JsonSelector, JsonValue } from "./contract";
 import { islist, isrecord, isset } from "./util";
-import { equals } from "rambda";
+import { equals, keys, pick } from "rambda";
 
 export const MATCH_ANY = Symbol("MATCH_ANY");
 export const MATCH_NONE = Symbol("MATCH_NONE");
@@ -12,20 +12,12 @@ export function matches(selector: JsonSelector, data: JsonValue): boolean {
   if (selector === MATCH_ANY) {
     return true;
   }
-  if (isrecord(selector)) {
-    if (isrecord(data)) {
-      for (const key of Object.keys(selector)) {
-        if (!equals(data[key], selector[key])) {
-          return false;
-        }
-      }
-      return true;
-    }
-  }
   if (isrecord(data)) {
-    return false;
+    const selectorKeys = keys(selector);
+    const subdata = pick(selectorKeys, data);
+    return equals(selector, subdata);
   }
-  return data === selector;
+  return equals(selector, data);
 }
 
 export function filter(
