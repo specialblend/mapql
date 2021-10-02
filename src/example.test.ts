@@ -48,23 +48,23 @@ test("example", () => {
   };
   const query = gql`
     query ExampleQuery {
-      myStr # jsonpath("myStr") => "example string"
-      myInt # jsonpath("myInt") => 1234
-      myAliasStr(from: "myStr") # jsonpath("myStr") => "example string"
-      myDoubleNestedInt(from: "myObj.myObj.myInt") # => 3456
+      myStr
+      myInt
+      myAliasStr(from: "myStr")
+      myDoubleNestedInt(from: "myObj.myObj.myInt")
       myObj {
-        myStr # jsonpath("myObj.myStr") => "example nested string"
-        myRootStr(fromRoot: "myStr") # jsonpath("$.myStr") => "example string"
-        myParsedInt(from: "myNumStr") @parseInt # => parseInt("3456.7890")
-        myIntPlus42(from: "myInt") @add(x: 42) # => 2345 + 42
-        myFoo(from: "myNumStr") @parseInt @subtract(x: 13) # => parseInt("3456.7890") - 13
+        myStr
+        myRootStr(fromRoot: "myStr")
+        myParsedInt(from: "myNumStr") @parseInt
+        myIntPlus42(from: "myInt") @add(x: 42)
+        myFoo(from: "myNumStr") @parseInt @subtract(x: 13)
       }
       myObjArr {
-        myStr @concat(before: "#hello") # => "#hello" + jsonpath("myObjArr[@].myStr")
-        myStrFoo(from: "myStr") @concat(after: "#bye") # => jsonpath("myObjArr[@].myStr") + "#bye"
-        myStrBar(from: "myStr") @concat(before: "#hello", after: "#bye") # => jsonpath("myObjArr[@].myStr") + "#bye"
+        myStr @concat(before: "#hello")
+        myStrFoo(from: "myStr") @concat(after: "#bye")
+        myStrBar(from: "myStr") @concat(before: "#hello", after: "#bye")
       }
-      myJson(from: "myObj.myObj") @toJson # => JSON.stringify(jsonpath("myObj.myObj"))
+      myJson(from: "myObj.myObj") @toJson
     }
   `;
   const result = map(query, data);
