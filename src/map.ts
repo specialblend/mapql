@@ -1,33 +1,52 @@
-import { Json } from "./contract";
+import { Json, JsonRecord } from "./contract";
 import { DocumentNode } from "graphql";
 import graphql, { ExecInfo } from "graphql-anywhere";
 import jp from "jsonpath";
 import { isset } from "./util";
+import { filter, reject, MATCH_ANY, MATCH_NONE } from "./filter";
+
+function execPath(pathSelector: string, root: JsonRecord) {
+  const [source] = jp.query(root, pathSelector);
+  if (typeof source === "object" || source !== null) {
+    return source;
+  }
+}
 
 function exec(
   _fieldName: string,
-  _parent: Json,
+  root: JsonRecord,
   _args: any,
   _data: Json,
   _info: ExecInfo
 ) {
-  const { directives: _directives } = _info;
+  const { isLeaf, directives: _directives } = _info;
   const directives = _directives || {};
   const args = _args || {};
-  const { root: isRoot } = directives;
-  if (isset(isRoot)) {
-    return _parent;
+
+  const {
+    from: pathSelector,
+    filter: filterSelector,
+    reject: rejectSelector,
+  } = args;
+
+  const { map: mapTag } = directives;
+
+  const shouldExec =
+    isLeaf ||
+    pathSelector ||
+    isset(mapTag) ||
+    isset(filterSelector) ||
+    isset(rejectSelector);
+
+  if (shouldExec) {
+    const pathName = pathSelector || _fieldName;
+    const child = execPath(pathName, root);
+    return reject(rejectSelector, filter(filterSelector, child));
   }
-  const { from: sourcePath } = args;
-  if (sourcePath) {
-    const [source] = jp.query(_parent, sourcePath);
-    if (typeof source === "object" || source !== null) {
-      return source;
-    }
-  }
-  return _parent[_fieldName];
+  return root;
 }
 
 export function map(query: DocumentNode, data: Json) {
-  return graphql(exec, query, data, data);
+  const [root] = [data];
+  return graphql(exec, query, root, data);
 }

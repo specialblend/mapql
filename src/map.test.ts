@@ -65,8 +65,8 @@ const data = {
   ],
 };
 
-describe("mapRoots", () => {
-  test("full passthru works as expected", () => {
+describe("map", () => {
+  test("@map works as expected", () => {
     const query = gql`
       query Example {
         exString
@@ -76,13 +76,13 @@ describe("mapRoots", () => {
         exFalse
         exNull
         exNumericString
-        exObj {
+        exObj @map {
           exNestedString
           exNestedInt
           exNestedFloat
           exNestedTrue
           exNestedFalse
-          exNestedObj {
+          exNestedObj @map {
             exObjNestedString
             exObjNestedInt
             exObjNestedFloat
@@ -90,13 +90,13 @@ describe("mapRoots", () => {
             exObjNestedFalse
           }
         }
-        exObjFoo {
+        exObjFoo @map {
           exNestedString
           exNestedInt
           exNestedFloat
           exNestedTrue
           exNestedFalse
-          exNestedObj {
+          exNestedObj @map {
             exObjNestedString
             exObjNestedInt
             exObjNestedFloat
@@ -104,7 +104,7 @@ describe("mapRoots", () => {
             exObjNestedFalse
           }
         }
-        exObjArr {
+        exObjArr @map {
           exNestedString
           exNestedInt
           exNestedFloat
@@ -117,7 +117,7 @@ describe("mapRoots", () => {
     const result = map(query, data);
     expect(result).toEqual(data);
   });
-  test("partial passthru works as expected", () => {
+  test("partial @map works as expected", () => {
     const query = gql`
       query Example {
         exString
@@ -127,13 +127,13 @@ describe("mapRoots", () => {
         #        exFalse
         #        exNull
         #        exNumericString
-        exObj {
+        exObj @map {
           exNestedString
           #          exNestedInt
           #          exNestedFloat
           #          exNestedTrue
           #          exNestedFalse
-          exNestedObj {
+          exNestedObj @map {
             exObjNestedString
             #            exObjNestedInt
             #            exObjNestedFloat
@@ -141,7 +141,7 @@ describe("mapRoots", () => {
             #            exObjNestedFalse
           }
         }
-        exObjArr {
+        exObjArr @map {
           exNestedString
           #            exNestedInt
           #            exNestedFloat
@@ -175,13 +175,13 @@ describe("mapRoots", () => {
         #        exFalse
         #        exNull
         #        exNumericString
-        exObj {
+        exObj @map {
           exNestedStringFoo: exNestedString
           #          exNestedInt
           #          exNestedFloat
           #          exNestedTrue
           #          exNestedFalse
-          exNestedObj {
+          exNestedObj @map {
             exObjNestedStringFoo: exObjNestedString
             #            exObjNestedInt
             #            exObjNestedFloat
@@ -189,7 +189,7 @@ describe("mapRoots", () => {
             #            exObjNestedFalse
           }
         }
-        exObjArr {
+        exObjArr @map {
           exNestedString
           #            exNestedInt
           #            exNestedFloat
@@ -213,17 +213,17 @@ describe("mapRoots", () => {
       })),
     });
   });
-  test("from works as expected", () => {
+  test("from: works as expected", () => {
     const query = gql`
       query Example {
         exString
-        exObj(from: "exObjFoo") {
+        exObj(from: "exObjFoo") @map {
           exNestedStringFoo: exNestedString
-          exNestedObj {
+          exNestedObj @map {
             exObjNestedStringFoo: exObjNestedString
           }
         }
-        exObjArr {
+        exObjArr @map {
           exNestedString
         }
       }
@@ -242,33 +242,33 @@ describe("mapRoots", () => {
       })),
     });
   });
-  test("@root works as expected", () => {
+  test("implicit @map works as expected", () => {
     const query = gql`
       query Example {
         exString
         exObj(from: "exObjFoo") {
           exNestedStringFoo: exNestedString
-          exNestedObj {
+          exNestedObj @map {
             exObjNestedStringFoo: exObjNestedString
           }
         }
-        exObjArr {
+        exObjArr @map {
           exNestedString
         }
-        foo @root {
+        foo {
           bar(from: "exObj") {
             exNestedStringFoo: exNestedString
-            exNestedObj {
+            exNestedObj @map {
               exObjNestedStringFoo: exObjNestedString
             }
           }
         }
-        alpha @root {
-          bravo @root {
-            charlie @root {
+        alpha {
+          bravo {
+            charlie {
               baz(from: "exObjFoo") {
                 exNestedStringFoo: exNestedString
-                exNestedObj {
+                exNestedObj @map {
                   exObjNestedStringFoo: exObjNestedString
                 }
               }
@@ -310,6 +310,43 @@ describe("mapRoots", () => {
           },
         },
       },
+    });
+  });
+  test("filter works as expected", () => {
+    const query = gql`
+      query FilterExample {
+        exObjArr(filter: { exTag: "foo" }) @map {
+          exNestedString
+        }
+      }
+    `;
+    const result = map(query, data);
+    expect(result).toEqual({
+      exObjArr: [
+        {
+          exNestedString: data.exObjArr[0].exNestedString,
+        },
+        {
+          exNestedString: data.exObjArr[2].exNestedString,
+        },
+      ],
+    });
+  });
+  test("reject works as expected", () => {
+    const query = gql`
+      query RejectExample {
+        exObjArr(reject: { exTag: "foo" }) @map {
+          exNestedString
+        }
+      }
+    `;
+    const result = map(query, data);
+    expect(result).toEqual({
+      exObjArr: [
+        {
+          exNestedString: data.exObjArr[1].exNestedString,
+        },
+      ],
     });
   });
 });
