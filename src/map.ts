@@ -4,11 +4,13 @@ import graphql, { ExecInfo } from "graphql-anywhere";
 import { fixInfo, isset, orEmpty } from "./util";
 import { filter, reject } from "./filter";
 import { path } from "./path";
+import { executesDirectives, parseDirectiveIds } from "./transform";
 
-function shouldMap(args: any, info: any) {
+function shouldMap(args: any, info: ExecInfo) {
   const {
     isLeaf,
     directives: { map: mapTag },
+    field: { directives: directiveNodes = [] },
   } = info;
 
   const {
@@ -17,12 +19,15 @@ function shouldMap(args: any, info: any) {
     reject: rejectSelector,
   } = args;
 
+  const directiveIds = parseDirectiveIds(directiveNodes);
+
   return (
     isLeaf ||
     pathSelector ||
     isset(mapTag) ||
     isset(filterSelector) ||
-    isset(rejectSelector)
+    isset(rejectSelector) ||
+    directiveIds.length
   );
 }
 
@@ -45,6 +50,7 @@ function exec(
   info: ExecInfo
 ) {
   if (shouldMap(args, info)) {
+    const execDirectives = executesDirectives(info);
     const {
       from: pathSelector,
       filter: filterSelector,
@@ -55,7 +61,7 @@ function exec(
     if (isset(filterSelector) || isset(rejectSelector)) {
       return execFilters(filterSelector, rejectSelector, child);
     }
-    return child;
+    return execDirectives(child);
   }
   return parent;
 }

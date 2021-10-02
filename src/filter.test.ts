@@ -33,6 +33,8 @@ describe("matches", () => {
       ...bar,
     };
     expect(matches(foo, foo)).toBe(true);
+    expect(matches(bar, bar)).toBe(true);
+    expect(matches(baz, baz)).toBe(true);
     expect(matches(data, data)).toBe(true);
     expect(matches({}, {})).toBe(true);
   });
