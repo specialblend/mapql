@@ -693,4 +693,33 @@ describe("map", () => {
       });
     });
   });
+  describe("@const", () => {
+    test("it returns constant value", () => {
+      const query = gql`
+        query ConstExample {
+          exString
+          exInt
+          exConstStr @const(of: "hello")
+          exConstInt @const(of: 1234)
+          exConstTrue @const(of: true)
+          exConstFalse @const(of: false)
+          exConstNull @const(of: null)
+          exConstObj @const(of: { foo: "bar" })
+          exConstArr @const(of: [{ foo: "bar" }])
+        }
+      `;
+      const result = map(query, data);
+      expect(result).toEqual({
+        exString: data.exString,
+        exInt: data.exInt,
+        exConstStr: "hello",
+        exConstInt: 1234,
+        exConstTrue: true,
+        exConstFalse: false,
+        exConstNull: null,
+        exConstObj: { foo: "bar" },
+        exConstArr: [{ foo: "bar" }],
+      });
+    });
+  });
 });

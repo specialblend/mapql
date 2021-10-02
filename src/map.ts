@@ -6,6 +6,19 @@ import { filter, reject } from "./filter";
 import { path } from "./path";
 import { executesDirectives, parseDirectiveIds } from "./transform";
 
+function isConst(info: ExecInfo): any {
+  const {
+    isLeaf,
+    directives: { const: constTag },
+  } = info;
+  if (isLeaf && constTag) {
+    const { of: constValue } = constTag;
+    if (isset(constValue)) {
+      return constValue;
+    }
+  }
+}
+
 function shouldMap(args: any, info: ExecInfo) {
   const {
     isLeaf,
@@ -49,6 +62,10 @@ function exec(
   context: any,
   info: ExecInfo
 ) {
+  const constValue = isConst(info);
+  if (isset(constValue)) {
+    return constValue;
+  }
   if (shouldMap(args, info)) {
     const execDirectives = executesDirectives(info);
     const {
