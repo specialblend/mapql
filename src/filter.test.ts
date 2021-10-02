@@ -83,7 +83,7 @@ describe("filter", () => {
       delta: "#delta",
       echo: "#echo",
     };
-    const result = filter(selector, root, data);
+    const result = filter(selector, root);
     expect(result).toBe(data);
   });
   test("it returns nothing when selector does not match root", () => {
@@ -96,11 +96,7 @@ describe("filter", () => {
       bravo: "#notbravo",
       charlie: "#charlie",
     };
-    const data = {
-      delta: "#delta",
-      echo: "#echo",
-    };
-    const result = filter(selector, root, data);
+    const result = filter(selector, root);
     expect(result).toBeUndefined();
   });
   test("it returns array values matching selector", () => {
@@ -140,11 +136,7 @@ describe("filter", () => {
       },
     ];
     const root = [...matchesSelector, ...notMatchesSelector];
-    const data = {
-      delta: "#delta",
-      echo: "#echo",
-    };
-    const result = filter(selector, root, data);
+    const result = filter(selector, root);
     expect(result).toEqual(matchesSelector);
   });
 });

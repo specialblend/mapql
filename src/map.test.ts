@@ -45,6 +45,7 @@ const data = {
       exNestedTrue: true,
       exNestedFalse: false,
       exTag: "foo",
+      exTag2: "baz",
     },
     {
       exNestedString: "This is an example nested string #2",
@@ -53,6 +54,7 @@ const data = {
       exNestedTrue: true,
       exNestedFalse: false,
       exTag: "bar",
+      exTag2: "faz",
     },
     {
       exNestedString: "This is an example nested string #3",
@@ -61,12 +63,13 @@ const data = {
       exNestedTrue: true,
       exNestedFalse: false,
       exTag: "foo",
+      exTag2: "bar",
     },
   ],
 };
 
 describe("map", () => {
-  test("@map works as expected", () => {
+  test("passthru @map works as expected", () => {
     const query = gql`
       query Example {
         exString
@@ -111,6 +114,7 @@ describe("map", () => {
           exNestedTrue
           exNestedFalse
           exTag
+          exTag2
         }
       }
     `;
@@ -312,10 +316,10 @@ describe("map", () => {
       },
     });
   });
-  test("filter works as expected", () => {
+  test("filter: works as expected", () => {
     const query = gql`
       query FilterExample {
-        exObjArr(filter: { exTag: "foo" }) @map {
+        exObjArr(filter: { exTag: "foo" }) {
           exNestedString
         }
       }
@@ -332,10 +336,10 @@ describe("map", () => {
       ],
     });
   });
-  test("reject works as expected", () => {
+  test("reject: works as expected", () => {
     const query = gql`
       query RejectExample {
-        exObjArr(reject: { exTag: "foo" }) @map {
+        exObjArr(reject: { exTag: "foo" }) {
           exNestedString
         }
       }
@@ -347,6 +351,36 @@ describe("map", () => {
           exNestedString: data.exObjArr[1].exNestedString,
         },
       ],
+    });
+  });
+  test("filter: and reject: work together as expected", () => {
+    const query = gql`
+      query RejectExample {
+        exObjArr(filter: { exTag: "foo" }, reject: { exTag2: "bar" }) {
+          exNestedString
+        }
+      }
+    `;
+    const result = map(query, data);
+    expect(result).toEqual({
+      exObjArr: [
+        {
+          exNestedString: data.exObjArr[0].exNestedString,
+        },
+      ],
+    });
+  });
+  test("filter: and reject: can negate each other as expected", () => {
+    const query = gql`
+      query RejectExample {
+        exObjArr(filter: { exTag: "foo" }, reject: { exTag: "foo" }) {
+          exNestedString
+        }
+      }
+    `;
+    const result = map(query, data);
+    expect(result).toEqual({
+      exObjArr: [],
     });
   });
 });

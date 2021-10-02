@@ -1,5 +1,6 @@
 import { JsonSelector, JsonValue } from "./contract";
 import { islist, isrecord, isset } from "./util";
+import { equals } from "rambda";
 
 export const MATCH_ANY = Symbol("MATCH_ANY");
 export const MATCH_NONE = Symbol("MATCH_NONE");
@@ -14,7 +15,7 @@ export function matches(selector: JsonSelector, data: JsonValue): boolean {
   if (isrecord(selector)) {
     if (isrecord(data)) {
       for (const key of Object.keys(selector)) {
-        if (data[key] !== selector[key]) {
+        if (!equals(data[key], selector[key])) {
           return false;
         }
       }
@@ -29,23 +30,21 @@ export function matches(selector: JsonSelector, data: JsonValue): boolean {
 
 export function filter(
   selector: JsonSelector = MATCH_ANY,
-  root: JsonValue | undefined
+  root: JsonValue
 ): JsonValue | undefined {
-  if (isset(root)) {
-    if (islist(root)) {
-      return root.filter((child) => {
-        return filter(selector, child);
-      });
-    }
-    if (matches(selector, root)) {
-      return root;
-    }
+  if (islist(root)) {
+    return root.filter((child) => {
+      return filter(selector, child);
+    });
+  }
+  if (matches(selector, root)) {
+    return root;
   }
 }
 
 export function reject(
   selector: JsonSelector = MATCH_NONE,
-  root: JsonValue | undefined
+  root: JsonValue
 ): JsonValue | undefined {
   if (isset(root)) {
     if (islist(root)) {
