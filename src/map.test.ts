@@ -642,6 +642,43 @@ describe("map", () => {
         });
       });
     });
+    describe("@default", () => {
+      test("it concats string before value", () => {
+        const query = gql`
+          query DefaultToExample {
+            exString
+            exFooDoesNotExist @default(to: "hello")
+          }
+        `;
+        const result = map(query, data);
+        expect(result).toEqual({
+          exString: data.exString,
+          exFooDoesNotExist: "hello",
+        });
+      });
+      test("it concats string after value", () => {
+        const query = gql`
+          query ConcatAfter {
+            exString @concat(after: "#bye")
+          }
+        `;
+        const result = map(query, data);
+        expect(result).toEqual({
+          exString: String(data.exString) + String("#bye"),
+        });
+      });
+      test("it concats string before and after value", () => {
+        const query = gql`
+          query ConcatAfter {
+            exString @concat(before: "#hello", after: "#bye")
+          }
+        `;
+        const result = map(query, data);
+        expect(result).toEqual({
+          exString: String("#hello") + String(data.exString) + String("#bye"),
+        });
+      });
+    });
     describe("composed directives", () => {
       test("it parses numeric string into integer", () => {
         const query = gql`

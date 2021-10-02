@@ -1,18 +1,30 @@
 import { DirectiveNode } from "graphql";
 import { ExecInfo } from "graphql-anywhere";
-import { has, head, identity, init, last, not, of, pipe, tail } from "rambda";
+import {
+  defaultTo,
+  has,
+  head,
+  identity,
+  init,
+  last,
+  not,
+  of,
+  pipe,
+  tail,
+} from "rambda";
 
 type DirectiveMap = typeof DIRECTIVES;
 type DirectiveId = keyof DirectiveMap;
 
 const DIRECTIVES: Record<string, CallableFunction> = {
-  parseInt: (args?: any) => (x: string) => parseInt(x),
-  parseFloat: (args?: any) => (x: string) => parseFloat(x),
-  String: (args?: any) => (x: any) => String(x),
-  Boolean: (args?: any) => (x: any) => Boolean(x),
-  toJson: (args?: any) => (x: any) => JSON.stringify(x),
-  not: (args?: any) => not,
-  of: (args?: any) => of,
+  parseInt: () => (x: string) => parseInt(x),
+  parseFloat: () => (x: string) => parseFloat(x),
+  String: () => (x: any) => String(x),
+  Boolean: () => (x: any) => Boolean(x),
+  toJson: () => (x: any) => JSON.stringify(x),
+  not: () => not,
+  of: () => of,
+  default: (args: any) => defaultTo(args.to),
   concat: concatStr,
   // head: (args?: any) => head,
   // last: (args?: any) => last,
