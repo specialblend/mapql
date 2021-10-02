@@ -20,7 +20,8 @@ export type Json = JsonRecord | JsonList;
 
 export type JsonList = JsonValue[];
 
-export interface TArgs {
+export interface MapArgs {
   from?: string;
   filter?: JsonSelector;
+  reject?: JsonSelector;
 }
