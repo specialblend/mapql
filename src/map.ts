@@ -1,57 +1,33 @@
-import type { DocumentNode } from "graphql";
-import type { ExecInfo } from "graphql-anywhere";
-import type { Json, MapArgs } from "./contract";
-
-import graphql from "graphql-anywhere";
+import { Json } from "./contract";
+import { DocumentNode } from "graphql";
+import graphql, { ExecInfo } from "graphql-anywhere";
 import jp from "jsonpath";
-import execDirectives from "./directives";
+import { isset } from "./util";
 
-function _from(defaultTo: any, pathName: string, data: any) {
-  const [result = defaultTo] = jp.query(data, pathName);
-  return result;
-}
-
-function isset<T>(x: T | undefined): x is T {
-  return typeof x !== "undefined";
-}
-
-function execArgs(root: Json, args: MapArgs, data: Json) {
-  const { from, fromConst, fromRoot, defaultTo } = args;
-  if (isset(fromConst)) {
-    return fromConst;
-  }
-  if (isset(fromRoot)) {
-    return _from(defaultTo, fromRoot, data);
-  }
-  if (isset(from)) {
-    return _from(defaultTo, from, root);
-  }
-}
-
-function resolve(
-  fieldName: string,
-  root: Json,
-  args: MapArgs,
-  data: Json,
-  info: ExecInfo
+function exec(
+  _fieldName: string,
+  _parent: Json,
+  _args: any,
+  _data: Json,
+  _info: ExecInfo
 ) {
-  const {
-    isLeaf,
-    directives: directiveInfo,
-    field: { directives: directiveNodes = [] },
-  } = info;
-  const _execDirectives = execDirectives(directiveInfo, directiveNodes, isLeaf);
-  if (isset(args)) {
-    const child = execArgs(root, args, data);
-    return _execDirectives(child);
+  const { directives: _directives } = _info;
+  const directives = _directives || {};
+  const args = _args || {};
+  const { root: isRoot } = directives;
+  if (isset(isRoot)) {
+    return _parent;
   }
-  const child = root[fieldName];
-  if (isset(child)) {
-    return _execDirectives(child);
+  const { from: sourcePath } = args;
+  if (sourcePath) {
+    const [source] = jp.query(_parent, sourcePath);
+    if (typeof source === "object" || source !== null) {
+      return source;
+    }
   }
-  return _execDirectives(root);
+  return _parent[_fieldName];
 }
 
-export default function map(query: DocumentNode, data: Json) {
-  return graphql(resolve, query, data, data);
+export function map(query: DocumentNode, data: Json) {
+  return graphql(exec, query, data, data);
 }
