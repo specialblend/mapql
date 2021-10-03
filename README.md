@@ -207,7 +207,7 @@ query GetAddresses3 {
 - ✅ `foo: bar` is short for `foo(from: "bar")` when path is simple field name (not JSONPath).
 - ✅ `@map` directive is optional and implicit on leaf nodes.
 
-❓ [see the example unit tests.](example/GetAddresses.example.test.ts)
+❓ [see example unit tests.](example/GetAddresses.example.test.ts)
 
 ### filtering fields
 
@@ -302,7 +302,7 @@ query FilterByStateCode {
 }
 ```
 
-⭕ [see example unit test.](example/FilterByStateCode.example.test.ts)
+❓ [see example unit test.](example/FilterByStateCode.example.test.ts)
 
 ### transforming fields
 
@@ -370,7 +370,7 @@ query TransformLeases {
 - ✅ directives are composable and will execute in **left-to-right** composition order.
 - ⚠️ **due to nature of GraphQL execution**, transformation directives are not available on parent nodes.
 
-⭕ [see example unit test.](example/TransformLeases.example.test.ts)
+❓ [see example unit test.](example/TransformLeases.example.test.ts)
 
 ### available transformers
 
