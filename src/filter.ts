@@ -1,30 +1,27 @@
 import { JsonSelector, JsonChild } from "./contract";
-import { equals, keys } from "rambda";
+import { all, equals, keys } from "rambda";
 import { islist, isrecord, isset } from "./util";
 
 export function matches(
-  match: JsonSelector,
+  selector: JsonSelector,
   data: JsonChild,
   defaultTo = true
 ): boolean {
-  if (!isset(match)) {
-    return defaultTo;
-  }
-  if (isrecord(match)) {
-    if (isrecord(data)) {
-      const childKeys = keys(match);
-      for (const k of childKeys) {
-        const childData = match[k];
-        const parentData = data[k];
-        if (!matches(childData, parentData)) {
-          return false;
-        }
+  if (isset(selector)) {
+    if (isrecord(selector)) {
+      if (isrecord(data)) {
+        const childKeys = keys(selector);
+        return all((k: string | number) => {
+          const childData = selector[k];
+          const parentData = data[k];
+          return matches(childData, parentData);
+        })(childKeys);
       }
-      return true;
+      return false;
     }
-    return false;
+    return equals(selector as JsonChild, data as JsonChild);
   }
-  return equals(match as JsonChild, data as JsonChild);
+  return defaultTo;
 }
 
 export function filter(
