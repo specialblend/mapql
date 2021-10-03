@@ -26,14 +26,15 @@ const DIRECTIVES: Record<string, CallableFunction> = {
   of: () => of,
   default: (args: any) => defaultTo(args.to),
   concat: concatStr,
-  // head: (args?: any) => head,
-  // last: (args?: any) => last,
-  // init: (args?: any) => init,
-  // tail: (args?: any) => tail,
-  // add: withx((x: number) => (y: number) => y + x),
-  // sub: withx((x: number) => (y: number) => y - x),
-  // mul: withx((x: number) => (y: number) => y * x),
-  // none: (args?: any) => () => {},
+  substr: substr, // TODO unit test
+  slice: slice, // TODO unit test
+  add: withx((x: number) => (y: number) => y + x), // TODO unit test
+  sub: withx((x: number) => (y: number) => y - x), // TODO unit test
+  mul: withx((x: number) => (y: number) => y * x), // TODO unit test
+  head: (args?: any) => head, // TODO unit test
+  init: (args?: any) => init, // TODO unit test
+  tail: (args?: any) => tail, // TODO unit test
+  last: (args?: any) => last, // TODO unit test
 };
 
 function withx(fn: CallableFunction) {
@@ -49,6 +50,20 @@ function concatStr(args: Record<string, any>) {
   const { before = "", after = "" } = args;
   return function (str: string) {
     return String(before) + String(str) + String(after);
+  };
+}
+
+function substr(args: any) {
+  return function substr(str: string) {
+    const { from = 0, len = str.length } = args;
+    return str.substr(from, len);
+  };
+}
+
+function slice(args: any) {
+  return function slice(x: any[]) {
+    const { start = 0, end = x.length } = args;
+    return x.slice(start, end);
   };
 }
 

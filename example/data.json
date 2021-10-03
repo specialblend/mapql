@@ -1,7 +1,17 @@
 {
+  "reportMeta": {
+    "generated": {
+      "date": "12/21/2012",
+      "user": {
+        "name": "System Admin",
+        "email": "admin@example.com"
+      }
+    }
+  },
   "leases": [
     {
       "leaseId": 1234,
+      "isActive": true,
       "residents": [
         {
           "name": "Alice",
@@ -16,13 +26,15 @@
       ],
       "address": {
         "street": "1234 Main St.",
+        "streetLine2": "#789",
         "city": "New York City",
-        "state": "NY",
+        "stateCode": "NY",
         "zipCode": "11210"
       }
     },
     {
       "leaseId": 2345,
+      "isActive": false,
       "residents": [
         {
           "name": "John Smith",
@@ -38,12 +50,13 @@
       "address": {
         "street": "1333 3rd St.",
         "city": "Newark",
-        "state": "NJ",
+        "stateCode": "NJ",
         "zipCode": "07195"
       }
     },
     {
       "leaseId": 4567,
+      "isActive": true,
       "residents": [
         {
           "name": "Alice",
@@ -59,7 +72,7 @@
       "address": {
         "street": "1333 3rd St.",
         "city": "Newark",
-        "state": "NJ",
+        "stateCode": "NJ",
         "zipCode": "07195"
       }
     }

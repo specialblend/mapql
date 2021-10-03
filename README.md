@@ -4,52 +4,398 @@ map and transform data structures using GraphQL and JSONPath.
 
 ## features
 
-GraphQL query is written in desired result structure, using GraphQL arguments for remapping paths, and GraphQL directives for transforming result values.
+GraphQL query is written in desired result structure, using GraphQL arguments and directives for remapping paths and transforming result values.
+
+### mapping fields
+
+⭕ using example data:
+
+<Details>
+<summary>expand example data</summary>
+
+```json
+{
+  "reportMeta": {
+    "generated": {
+      "date": "12/21/2012",
+      "user": {
+        "name": "System Admin",
+        "email": "admin@example.com"
+      }
+    }
+  },
+  "leases": [
+    {
+      "leaseId": 1234,
+      "residents": [
+        {
+          "name": "Alice",
+          "dob": "1/1/1111",
+          "email": "alice@example.com"
+        },
+        {
+          "name": "Bob",
+          "dob": "12/12/1212",
+          "email": "bob@example.com"
+        }
+      ],
+      "address": {
+        "street": "1234 Main St.",
+        "city": "New York City",
+        "stateCode": "NY",
+        "zipCode": "11210"
+      }
+    },
+    {
+      "leaseId": 2345,
+      "residents": [
+        {
+          "name": "John Smith",
+          "dob": "2/2/2222",
+          "email": "john.smith@example.com"
+        },
+        {
+          "name": "Jane Doe",
+          "dob": "11/11/1111",
+          "email": "jane.doe@example.com"
+        }
+      ],
+      "address": {
+        "street": "1333 3rd St.",
+        "city": "Newark",
+        "stateCode": "NJ",
+        "zipCode": "07195"
+      }
+    },
+    {
+      "leaseId": 4567,
+      "residents": [
+        {
+          "name": "Alice",
+          "dob": "1/1/1111",
+          "email": "alice@example.com"
+        },
+        {
+          "name": "Bob",
+          "dob": "12/12/1212",
+          "email": "bob@example.com"
+        }
+      ],
+      "address": {
+        "street": "1333 3rd St.",
+        "city": "Newark",
+        "stateCode": "NJ",
+        "zipCode": "07195"
+      }
+    }
+  ]
+}
+```
+</Details>
+
+⭕ with following query:
 
 ```graphql
-query ExampleQuery {
-    alpha {
-        bravo # no arguments implies current path => "alpha.bravo"
-        charlie @foo # run @foo directive on field `charlie`
-    }
-    delta {
-        echo(from: "alpha.bravo") # map field echo from data.alpha.bravo
-        foxtrot(from: "charlie") {
-            gulf # map field from data.charlie.gulf
-            hotel(fromRoot: "alpha.charlie") # map field hotel from data.alpha.charlie
-            india(fromConst: "fixed value")
+query GetAddresses1 {
+    leases(from: "leases") {
+        contractNumber(from: "leaseId")
+        address(from: "address") {
+            street(from: "street")
+            city(from: "city")
+            stateCode(from: "stateCode")
+            zipCode(from: "zipCode")
         }
+    }
+    reportInfo {
+        date(from: "reportMeta.generated.date")
+        manager(from: "reportMeta.generated.user.name")
     }
 }
 ```
 
-### available arguments
+⭕ we get our result:
 
-- `(from: $path, defaultTo: $someFallback)`: map field from relative path. return `$someFallback` if path not exists. `$path` is any valid `JSONPath` string.
-- `(fromRoot: $path, defaultTo: $someFallback)`: map field from root path. return `$someFallback` if path not exists. `$path` is any valid `JSONPath` string.
-- `(fromConst: $value)`: map field from fixed value. `$value` is any valid `GraphQL` value.
+```json
+{
+  "leases": [
+    {
+      "contractNumber": 1234,
+      "address": {
+        "street": "1234 Main St.",
+        "city": "New York City",
+        "stateCode": "NY",
+        "zipCode": "11210"
+      }
+    },
+    {
+      "contractNumber": 2345,
+      "address": {
+        "street": "1333 3rd St.",
+        "city": "Newark",
+        "stateCode": "NJ",
+        "zipCode": "07195"
+      }
+    },
+    {
+      "contractNumber": 4567,
+      "address": {
+        "street": "1333 3rd St.",
+        "city": "Newark",
+        "stateCode": "NJ",
+        "zipCode": "07195"
+      }
+    }
+  ],
+  "reportInfo": {
+    "date": "12/21/2012",
+    "manager": "System Admin",
+    "exampleVersion": "v1.2.3.4"
+  }
+}
+```
 
-### directives
+#### 💡 concepts
 
-⚠️ **note: directives are only executed on leaf nodes.**
+- ✅ `foo(from:$path)` will map `foo` field in result to JSONPath `$path`.
+- ✅ `foo @const(of: "bar")` will map `foo` field in result to fixed value `"bar"`.
 
-✅ **note:** directives are composable and will execute in **left-to-right** composition order.
+⭕ let's see if we can't shorten it a little:
 
-- `@parseInt`: format numeric string into integer
-- `@parseFloat` format numeric string into float
-- `@toJson`: format value into JSON string
-- `@String`: format value into `string`
-- `@Boolean`: coerce value into `boolean`
-- `@concat(before: $beforeStr, after: $afterStr)`: concatenate string. arguments are not mutually exclusive.
-- `@add(x: $i)`: add amount to value. `$i` is any valid `GraphQL` numeric value.
-- `@subtract(x: $i)`: subtract amount from value. `$i` is any valid `GraphQL` numeric value.
-- `@not`: logical negation. formats truthy value into `false` and falsy value into `true`.
-- `@of`: monadic constructor. returns singleton array of value.
-- `@head`: returns first element of array value.
-- `@init`: returns init (all except last element) of array value.
-- `@tail`: returns tail (all except first element) of array value.
-- `@last`: returns last element of array value.
-- `@none`: ignores field.
+```graphql
+query GetAddresses2 {
+    leases @map {
+        contractNumber(from: "leaseId")
+        address @map {
+            street @map
+            city @map
+            stateCode @map
+            zipCode @map
+        }
+    }
+    reportInfo {
+        date(from: "reportMeta.generated.date")
+        manager(from: "reportMeta.generated.user.name")
+    }
+}
+```
+#### 💡 concepts
+
+- ✅ `foo @map` is short for `foo(from: "foo")`.
+
+⭕ let's go little bit shorter.
+
+```graphql
+query GetAddresses3 {
+    leases @map {
+        contractNumber: leaseId
+        address @map {
+            street
+            city
+            stateCode
+            zipCode
+        }
+    }
+    reportInfo(from: "reportMeta.generated") {
+        date
+        manager(from: "user.name")
+    }
+}
+```
+
+#### 💡 concepts
+
+- ✅ `foo: bar` is short for `foo(from: "bar")` when path is simple field name (not JSONPath).
+- ✅ `@map` directive is optional and implicit on leaf nodes.
+
+❓ [see the example unit tests.](example/GetAddresses.example.test.ts)
+
+### filtering fields
+
+⭕ query:
+
+```graphql
+query FilterActiveLeases {
+  leases(filter: { isActive: true }) {
+    residents @map {
+      name
+      email
+    }
+    address @map {
+      street
+      city
+      zipCode
+    }
+  }
+}
+```
+
+⭕ result:
+
+<Details>
+<summary>expand result</summary>
+
+```json
+{
+  "leases": [
+    {
+      "isActive": true,
+      "residents": [
+        {
+          "name": "Alice",
+          "email": "alice@example.com"
+        },
+        {
+          "name": "Bob",
+          "email": "bob@example.com"
+        }
+      ],
+      "address": {
+        "street": "1234 Main St.",
+        "city": "New York City",
+        "zipCode": "11210"
+      }
+    },
+    {
+      "isActive": true,
+      "residents": [
+        {
+          "name": "Alice",
+          "email": "alice@example.com"
+        },
+        {
+          "name": "Bob",
+          "email": "bob@example.com"
+        }
+      ],
+      "address": {
+        "street": "1333 3rd St.",
+        "city": "Newark",
+        "zipCode": "07195"
+      }
+    }
+  ]
+}
+```
+</Details>
+
+❓ [see example unit test.](example/FilterActiveLeases.example.test.ts)
+
+#### 💡 concepts
+
+- ✅ `foo(filter: { bar: "baz" })` can be used to filter fields using structured selectors.
+
+⭕ using nested selector:
+
+```graphql
+query FilterByStateCode {
+  leases(filter: { address: { stateCode: "NJ" } }) {
+    residents @map {
+      name
+      email
+    }
+    address @map {
+      street
+      city
+      zipCode
+    }
+  }
+}
+```
+
+⭕ [see example unit test.](example/FilterByStateCode.example.test.ts)
+
+### transforming fields
+
+⭕ query:
+
+```graphql
+query TransformLeases {
+    leases(from: "leases") {
+        contractNumber(from: "leaseId") @String @concat(before: "#")
+        # transformer ignored on parent node (address)
+        address @toJson {
+            street(from: "street")
+            streetLine2 @default(to: "N/A")
+            city(from: "city")
+            stateCode(from: "stateCode")
+            zipCode(from: "zipCode") @parseInt
+        }
+    }
+    reportMetaJson: reportMeta @toJson
+}
+```
+
+⭕ result:
+
+```json
+{
+  "leases": [
+    {
+      "contractNumber": "#1234",
+      "address": {
+        "street": "1234 Main St.",
+        "streetLine2": "#789",
+        "city": "New York City",
+        "stateCode": "NY",
+        "zipCode": 11210
+      }
+    },
+    {
+      "contractNumber": "#2345",
+      "address": {
+        "street": "1333 3rd St.",
+        "streetLine2": "N/A",
+        "city": "Newark",
+        "stateCode": "NJ",
+        "zipCode": 7195
+      }
+    },
+    {
+      "contractNumber": "#4567",
+      "address": {
+        "street": "1333 3rd St.",
+        "streetLine2": "N/A",
+        "city": "Newark",
+        "stateCode": "NJ",
+        "zipCode": 7195
+      }
+    }
+  ],
+  "reportMetaJson": "{\"generated\":{\"date\":\"12/21/2012\",\"user\":{\"name\":\"System Admin\",\"email\":\"admin@example.com\"}}}"
+}
+```
+
+#### 💡 concepts
+
+- ✅ directives are composable and will execute in **left-to-right** composition order.
+- ⚠️ **due to nature of GraphQL execution**, transformation directives are not available on parent nodes.
+
+⭕ [see example unit test.](example/TransformLeases.example.test.ts)
+
+### available transformers
+
+#### ✅ unit tested
+
+- `@default(to: $any)`: set default value
+- `@parseInt`: cast numeric string to integer
+- `@parseFloat` cast numeric string to float
+- `@String`: cast value to `string`
+- `@Boolean`: cast value into `boolean`
+- `@toJson`: format value to JSON string
+- `@concat(before: $string, after: $string)`: concatenate string. arguments not mutually exclusive.
+- `@not`: logical not.
+- `@of`: return singleton array of value.
+
+#### ⭕ not unit tested (yet)
+- `@substr(from: $index, len: $index)`: return substring of value.
+- `@slice(from: $index, to: $index)`: slice array.
+- `@add(x: $number)`: add to value.
+- `@sub(x: $number)`: subtract from value.
+- `@mul(x: $number)`: multiply value.
+- `@head`: return first element of array.
+- `@init`: return all except last element of array.
+- `@tail`: return all except first element of array.
+- `@last`: return last element of array.
 
 ## usage example
 
@@ -68,7 +414,7 @@ const data = {
 const query = gql`
     query ExampleFilter {
         foo {
-            # bar # field will be excluded
+            # bar
             baz
         }
     }
@@ -76,112 +422,3 @@ const query = gql`
 
 const result = map(query, data);
 ```
-
-## extended example
-
-<details>
-    <summary>expand extended example</summary>
-
-given `data`:
-
-```json
-{
-  "myStr": "example string",
-  "myInt": 1234,
-  "myBool": true,
-  "myNumStr": "1234.5678",
-  "myObj": {
-    "myStr": "example nested string",
-    "myInt": 2345,
-    "myBool": false,
-    "myNumStr": "3456.7890",
-    "myObj": {
-      "myStr": "example double nested string",
-      "myInt": 3456,
-      "myBool": false,
-      "myNumStr": "4567.8901"
-    }
-  },
-  "myObjArr": [
-    {
-      "myStr": "example nested string #1",
-      "myInt": 4567,
-      "myBool": false,
-      "myNumStr": "5678.9012",
-      "myObj": {
-        "myStr": "example double nested string #1",
-        "myInt": 5678,
-        "myBool": false,
-        "myNumStr": "6789.0123"
-      }
-    },
-    {
-      "myStr": "example nested string #2",
-      "myInt": 5678,
-      "myBool": false,
-      "myNumStr": "5678.9012",
-      "myObj": {
-        "myStr": "example double nested string #2",
-        "myInt": 6789,
-        "myBool": false,
-        "myNumStr": "7890.1234"
-      }
-    }
-  ]
-}
-```
-and `query`:
-
-```graphql
-query ExampleQuery {
-    myStr # jsonpath("myStr") => "example string"
-    myInt # jsonpath("myInt") => 1234
-    myAliasStr(from: "myStr") # jsonpath("myStr") => "example string"
-    myDoubleNestedInt(from: "myObj.myObj.myInt") # => 3456
-    myObj {
-        myStr # jsonpath("myObj.myStr") => "example nested string"
-        myRootStr(fromRoot: "myStr") # jsonpath("$.myStr") => "example string"
-        myParsedInt(from: "myNumStr") @parseInt # => parseInt("3456.7890")
-        myIntPlus42(from: "myInt") @add(x: 42) # => 2345 + 42
-        myFoo(from: "myNumStr") @parseInt @subtract(x: 13) # => parseInt("3456.7890") - 13
-    }
-    myObjArr {
-        myStr @concat(before: "#hello") # => "#hello" + jsonpath("myObjArr[@].myStr")
-        myStrFoo(from: "myStr") @concat(after: "#bye") # => jsonpath("myObjArr[@].myStr") + "#bye"
-        myStrBar(from: "myStr") @concat(before: "#hello", after: "#bye") # => jsonpath("myObjArr[@].myStr") + "#bye"
-    }
-    myJson(from: "myObj.myObj") @toJson # => JSON.stringify(jsonpath("myObj.myObj"))
-}
-```
-
-`result`:
-
-```json
-{
-  "myStr": "example string",
-  "myInt": 1234,
-  "myAliasStr": "example string",
-  "myDoubleNestedInt": 3456,
-  "myObj": {
-    "myStr": "example nested string",
-    "myRootStr": "example string",
-    "myParsedInt": 3456,
-    "myIntPlus42": 2387,
-    "myFoo": 3443
-  },
-  "myObjArr": [
-    {
-      "myStr": "#helloexample nested string #1",
-      "myStrFoo": "example nested string #1#bye",
-      "myStrBar": "#helloexample nested string #1#bye"
-    },
-    {
-      "myStr": "#helloexample nested string #2",
-      "myStrFoo": "example nested string #2#bye",
-      "myStrBar": "#helloexample nested string #2#bye"
-    }
-  ],
-  "myJson": "{\"myStr\":\"example double nested string\",\"myInt\":3456,\"myBool\":false,\"myNumStr\":\"4567.8901\"}"
-}
-```
-</details>

@@ -1,12 +1,11 @@
-import exampleData from "./data.json";
 import gql from "graphql-tag";
-
 import map from "../src";
+import exampleData from "./data.json";
 
-test("filter `leases` by `address.state`", () => {
+test("FilterByStateCode", () => {
   const query = gql`
-    query Example {
-      leases(filter: { address: { state: "NJ" } }) {
+    query FilterByStateCode {
+      leases(filter: { address: { stateCode: "NJ" } }) {
         residents @map {
           name
           email
@@ -23,7 +22,7 @@ test("filter `leases` by `address.state`", () => {
   expect(result).toEqual({
     leases: [
       ...exampleData.leases
-        .filter((lease) => lease.address.state === "NJ")
+        .filter((lease) => lease.address.stateCode === "NJ")
         .map((lease) => {
           const {
             residents,
