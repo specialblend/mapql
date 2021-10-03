@@ -1,9 +1,9 @@
 import { JsonRecord, PathSelector } from "./contract";
 import jp from "jsonpath";
 
-export function path(selector: PathSelector, root: JsonRecord, data = root) {
+export function path(selector: PathSelector, data: JsonRecord, parent = data) {
   if (selector === "@") {
-    const [source] = jp.query(root, "$");
+    const [source] = jp.query(parent, "$");
     if (typeof source === "object" || source !== null) {
       return source;
     }
@@ -16,7 +16,7 @@ export function path(selector: PathSelector, root: JsonRecord, data = root) {
     }
     return {};
   }
-  const [source] = jp.query(root, selector);
+  const [source] = jp.query(parent, selector);
   if (typeof source === "object" || source !== null) {
     return source;
   }

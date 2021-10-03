@@ -45,35 +45,38 @@ function shouldMap(args: any, info: ExecInfo) {
   );
 }
 
-function executesFilter(executor: typeof filter | typeof reject) {
-  return function execFilter(
-    query: FilterQuery,
-    parent: JsonValue,
-    child: JsonValue,
-    data = child
-  ) {
-    const { from, selector } = query;
-    if (isset(from)) {
-      const target = path(from, parent as JsonRecord, data as JsonRecord);
-      return executor(selector, target, child);
-    }
-    return executor(selector, child);
-  };
+function execFilter(
+  executor: typeof filter | typeof reject,
+  query: FilterQuery,
+  data: JsonValue,
+  parent = data,
+  child = parent
+) {
+  const { from, selector } = query;
+  if (isset(from)) {
+    const target = path(from, data as JsonRecord, parent as JsonRecord);
+    return executor(selector, target, child);
+  }
+  return executor(selector, child);
 }
 
 function execFilters(
   filterQuery: FilterQuery,
   rejectQuery: FilterQuery,
+  data: JsonValue,
   parent: JsonValue,
-  child: JsonValue,
-  data = child
+  child: JsonValue
 ) {
   if (isset(filterQuery.selector) || isset(rejectQuery.selector)) {
-    const execFilter = executesFilter(filter);
-    const execReject = executesFilter(reject);
-    const result = execFilter(filterQuery, parent, child, data) as JsonValue;
+    const result = execFilter(
+      filter,
+      filterQuery,
+      data,
+      parent,
+      child
+    ) as JsonValue;
     if (result) {
-      return execReject(rejectQuery, parent, result);
+      return execFilter(reject, rejectQuery, child, parent, result);
     }
     return result;
   }
@@ -101,11 +104,11 @@ function executes(data: JsonRecord) {
 
     if (shouldMap(args, info)) {
       const pathName = isset(pathSelector) ? pathSelector : fieldName;
-      const child = path(pathName, parent, data);
-      const result = execFilters(filterQuery, rejectQuery, parent, child, data);
+      const child = path(pathName, data, parent);
+      const result = execFilters(filterQuery, rejectQuery, data, parent, child);
       return execDirectives(result);
     }
-    const result = execFilters(filterQuery, rejectQuery, parent, parent, data);
+    const result = execFilters(filterQuery, rejectQuery, data, parent, parent);
     return execDirectives(result);
   };
 }
