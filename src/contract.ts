@@ -24,7 +24,7 @@ export type JsonList = JsonValue[];
 
 export interface FilterQuery {
   from?: PathSelector;
-  selector: JsonSelector;
+  match: JsonSelector;
 }
 
 export interface MapArgs {

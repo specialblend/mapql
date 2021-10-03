@@ -48,17 +48,16 @@ test("GenerateArgoWorkflow", () => {
               valueFrom {
                 parameter(
                   from: "name"
-                  filter: { from: "@", selector: { sourceType: "input" } }
+                  filter: { from: "@", match: { sourceType: "input" } }
                 ) @concat(before: "{{workflow.inputs.parameters.", after: "}}")
-                configMapKeyRef(
-                  filter: { selector: { sourceType: "configmap" } }
-                ) @nomap {
+                configMapKeyRef(filter: { match: { sourceType: "configmap" } })
+                  @nomap {
                   name: sourceName
                   key: sourceKey
                 }
                 secretKeyRef(
                   from: "@"
-                  filter: { selector: { sourceType: "secret" } }
+                  filter: { match: { sourceType: "secret" } }
                 ) {
                   name: sourceName
                   key: sourceKey

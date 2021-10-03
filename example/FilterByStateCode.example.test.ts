@@ -5,7 +5,7 @@ import exampleData from "./data.json";
 test("FilterByStateCode", () => {
   const query = gql`
     query FilterByStateCode {
-      leases(filter: { selector: { address: { stateCode: "NJ" } } }) {
+      leases(filter: { match: { address: { stateCode: "NJ" } } }) {
         residents @map {
           name
           email

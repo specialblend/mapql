@@ -323,7 +323,7 @@ describe("map", () => {
     test("filter: works as expected on array root", () => {
       const query = gql`
         query FilterExample {
-          exObjArr(filter: { selector: { exTag: "foo" } }) {
+          exObjArr(filter: { match: { exTag: "foo" } }) {
             exNestedString
           }
         }
@@ -345,7 +345,7 @@ describe("map", () => {
         query FilterExample {
           exObjArr @map {
             exNestedString
-            exTag(filter: { selector: "foo" })
+            exTag(filter: { match: "foo" })
           }
         }
       `;
@@ -369,7 +369,7 @@ describe("map", () => {
     test("reject: works as expected", () => {
       const query = gql`
         query RejectExample {
-          exObjArr(reject: { selector: { exTag: "foo" } }) {
+          exObjArr(reject: { match: { exTag: "foo" } }) {
             exNestedString
           }
         }
@@ -387,8 +387,8 @@ describe("map", () => {
       const query = gql`
         query RejectExample {
           exObjArr(
-            filter: { selector: { exTag: "foo" } }
-            reject: { selector: { exTag2: "bar" } }
+            filter: { match: { exTag: "foo" } }
+            reject: { match: { exTag2: "bar" } }
           ) {
             exNestedString
           }
@@ -407,8 +407,8 @@ describe("map", () => {
       const query = gql`
         query RejectExample {
           exObjArr(
-            filter: { selector: { exTag: "foo" } }
-            reject: { selector: { exTag: "foo" } }
+            filter: { match: { exTag: "foo" } }
+            reject: { match: { exTag: "foo" } }
           ) {
             exNestedString
           }

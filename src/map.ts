@@ -52,12 +52,12 @@ function execFilter(
   parent = data,
   child = parent
 ) {
-  const { from, selector } = query;
+  const { from, match } = query;
   if (isset(from)) {
     const target = path(from, data as JsonRecord, parent as JsonRecord);
-    return executor(selector, target, child);
+    return executor(match, target, child);
   }
-  return executor(selector, child);
+  return executor(match, child);
 }
 
 function execFilters(
@@ -67,7 +67,7 @@ function execFilters(
   parent: JsonValue,
   child: JsonValue
 ) {
-  if (isset(filterQuery.selector) || isset(rejectQuery.selector)) {
+  if (isset(filterQuery.match) || isset(rejectQuery.match)) {
     const result = execFilter(
       filter,
       filterQuery,
@@ -98,8 +98,8 @@ function executes(data: JsonRecord) {
     const execDirectives = executesDirectives(info);
     const {
       from: pathSelector,
-      filter: filterQuery = { selector: undefined },
-      reject: rejectQuery = { selector: undefined },
+      filter: filterQuery = { match: undefined },
+      reject: rejectQuery = { match: undefined },
     } = args;
 
     if (shouldExecPath(args, info)) {
