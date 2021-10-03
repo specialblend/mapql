@@ -1,700 +1,724 @@
 import gql from "graphql-tag";
-import { head, tail, last, of } from "rambda";
-import map from "./map";
+import { map } from "./map";
+import { not, of } from "rambda";
 
-describe("map", () => {
-  const data = {
-    exString: `This is an example string`,
-    exInt: 1234,
-    exFloat: 13.37,
-    exTrue: true,
-    exFalse: false,
-    exNull: null,
-    exNumericString: `1337.1234`,
-    exObj: {
-      exNestedString: `This is an example nested string`,
-      exNestedInt: -121212,
-      exNestedFloat: 4.1315,
+const data = {
+  exString: "This is an example string",
+  exInt: 1234,
+  exFloat: 13.37,
+  exTrue: true,
+  exFalse: false,
+  exNull: null,
+  exNumericString: "1337.1234",
+  exObj: {
+    exNestedString: "This is an example nested string",
+    exNestedInt: -121212,
+    exNestedFloat: 4.1315,
+    exNestedTrue: true,
+    exNestedFalse: false,
+    exNestedObj: {
+      exObjNestedString: "This is an example obj nested string",
+      exObjNestedInt: -131313,
+      exObjNestedFloat: 0.1234,
+      exObjNestedTrue: true,
+      exObjNestedFalse: false,
+    },
+  },
+  exObjFoo: {
+    exNestedString: "This is an example nested string foo",
+    exNestedInt: 131313,
+    exNestedFloat: 4.4654653,
+    exNestedTrue: true,
+    exNestedFalse: false,
+    exNestedObj: {
+      exObjNestedString: "This is an example obj nested string foo",
+      exObjNestedInt: 121212,
+      exObjNestedFloat: 0.6546345,
+      exObjNestedTrue: true,
+      exObjNestedFalse: false,
+    },
+  },
+  exObjArr: [
+    {
+      exNestedString: "This is an example nested string #1",
+      exNestedInt: 111,
+      exNestedFloat: -0.111,
       exNestedTrue: true,
       exNestedFalse: false,
-      exNestedObj: {
-        exObjNestedString: `This is an example obj nested string`,
-        exObjNestedInt: -131313,
-        exObjNestedFloat: 0.1234,
-        exObjNestedTrue: true,
-        exObjNestedFalse: false,
-      },
+      exTag: "foo",
+      exTag2: "baz",
     },
-    exObjArr: [
-      {
-        exNestedString: `This is an example nested string #1`,
-        exNestedInt: 111,
-        exNestedFloat: -0.111,
-        exNestedTrue: true,
-        exNestedFalse: false,
-      },
-      {
-        exNestedString: `This is an example nested string #2`,
-        exNestedInt: 222,
-        exNestedFloat: -0.222,
-        exNestedTrue: true,
-        exNestedFalse: false,
-      },
-      {
-        exNestedString: `This is an example nested string #3`,
-        exNestedInt: 333,
-        exNestedFloat: -0.333,
-        exNestedTrue: true,
-        exNestedFalse: false,
-      },
-    ],
-  };
-  describe("args", () => {
-    test("it formats implicit mappings as expected", () => {
+    {
+      exNestedString: "This is an example nested string #2",
+      exNestedInt: 222,
+      exNestedFloat: -0.222,
+      exNestedTrue: true,
+      exNestedFalse: false,
+      exTag: "bar",
+      exTag2: "faz",
+    },
+    {
+      exNestedString: "This is an example nested string #3",
+      exNestedInt: 333,
+      exNestedFloat: -0.333,
+      exNestedTrue: true,
+      exNestedFalse: false,
+      exTag: "foo",
+      exTag2: "bar",
+    },
+  ],
+};
+
+describe("map", () => {
+  describe("path", () => {
+    test("passthru @map works as expected", () => {
       const query = gql`
-        query ImplicitMapExample {
+        query Example {
           exString
           exInt
           exFloat
           exTrue
           exFalse
+          exNull
           exNumericString
-          exObj
-          exObjArr
-        }
-      `;
-      const result = map(query, data);
-      expect(result).toEqual({
-        exString: data.exString,
-        exInt: data.exInt,
-        exFloat: data.exFloat,
-        exTrue: data.exTrue,
-        exFalse: data.exFalse,
-        exNumericString: data.exNumericString,
-        exObj: data.exObj,
-        exObjArr: data.exObjArr,
-      });
-    });
-    test("it filters implicit mappings as expected", () => {
-      const query = gql`
-        query FilterMapExample {
-          exString
-          exInt
-          exFloat
-          exTrue
-          exFalse
-          exObj {
+          exObj @map {
             exNestedString
+            exNestedInt
+            exNestedFloat
             exNestedTrue
-            exNestedObj {
+            exNestedFalse
+            exNestedObj @map {
               exObjNestedString
+              exObjNestedInt
+              exObjNestedFloat
+              exObjNestedTrue
+              exObjNestedFalse
             }
           }
-          exObjArr {
+          exObjFoo @map {
+            exNestedString
             exNestedInt
+            exNestedFloat
+            exNestedTrue
             exNestedFalse
+            exNestedObj @map {
+              exObjNestedString
+              exObjNestedInt
+              exObjNestedFloat
+              exObjNestedTrue
+              exObjNestedFalse
+            }
+          }
+          exObjArr @map {
+            exNestedString
+            exNestedInt
+            exNestedFloat
+            exNestedTrue
+            exNestedFalse
+            exTag
+            exTag2
+          }
+        }
+      `;
+      const result = map(query, data);
+      expect(result).toEqual(data);
+    });
+    test("partial @map works as expected", () => {
+      const query = gql`
+        query Example {
+          exString
+          #        exInt
+          #        exFloat
+          #        exTrue
+          #        exFalse
+          #        exNull
+          #        exNumericString
+          exObj @map {
+            exNestedString
+            #          exNestedInt
+            #          exNestedFloat
+            #          exNestedTrue
+            #          exNestedFalse
+            exNestedObj @map {
+              exObjNestedString
+              #            exObjNestedInt
+              #            exObjNestedFloat
+              #            exObjNestedTrue
+              #            exObjNestedFalse
+            }
+          }
+          exObjArr @map {
+            exNestedString
+            #            exNestedInt
+            #            exNestedFloat
+            #            exNestedTrue
+            #            exNestedFalse
+            #            exTag
           }
         }
       `;
       const result = map(query, data);
       expect(result).toEqual({
         exString: data.exString,
-        exInt: data.exInt,
-        exFloat: data.exFloat,
-        exTrue: data.exTrue,
-        exFalse: data.exFalse,
         exObj: {
           exNestedString: data.exObj.exNestedString,
-          exNestedTrue: data.exObj.exNestedTrue,
           exNestedObj: {
             exObjNestedString: data.exObj.exNestedObj.exObjNestedString,
           },
         },
-        exObjArr: data.exObjArr.map(
-          ({ exNestedInt, exNestedFalse }, index) => ({
-            exNestedInt: data.exObjArr[index].exNestedInt,
-            exNestedFalse: data.exObjArr[index].exNestedFalse,
-          })
-        ),
+        exObjArr: data.exObjArr.map(({ exNestedString }) => ({
+          exNestedString,
+        })),
       });
-      expect(result.exObj.exNestedInt).toBeUndefined();
-      expect(result.exObjArr[0].exNestedTrue).toBeUndefined();
     });
-    test("it formats `from` mappings as expected", () => {
+    test("field aliasing works as expected", () => {
       const query = gql`
-        query FormatFromPathExample {
-          exStringFoo(from: "exString")
-          exStringBar(from: "exString", defaultTo: "bar")
-          exStringFooBar(from: "exString_erdftgvyhbuj", defaultTo: "foobar")
-          exIntFoo(from: "exInt")
-          exFloatFoo(from: "exFloat")
-          exTrueFoo(from: "exTrue")
-          exFalseFoo(from: "exFalse")
-          exObjFoo(from: "exObj") {
-            exNestedStringFoo(from: "exNestedString")
-            exNestedTrueFoo(from: "exNestedTrue")
+        query Example {
+          exString
+          #        exInt
+          #        exFloat
+          #        exTrue
+          #        exFalse
+          #        exNull
+          #        exNumericString
+          exObj @map {
+            exNestedStringFoo: exNestedString
+            #          exNestedInt
+            #          exNestedFloat
+            #          exNestedTrue
+            #          exNestedFalse
+            exNestedObj @map {
+              exObjNestedStringFoo: exObjNestedString
+              #            exObjNestedInt
+              #            exObjNestedFloat
+              #            exObjNestedTrue
+              #            exObjNestedFalse
+            }
           }
-          exObjArr {
-            exString(from: "exNestedString")
-            exStringRoot(fromRoot: "exString")
-            exInt(from: "exNestedInt")
-            exIntRoot(fromRoot: "exInt")
+          exObjArr @map {
+            exNestedString
+            #            exNestedInt
+            #            exNestedFloat
+            #            exNestedTrue
+            #            exNestedFalse
+            #            exTag
           }
-          exObjNestedString(from: "exObj.exNestedObj.exObjNestedString")
         }
       `;
       const result = map(query, data);
       expect(result).toEqual({
-        exStringFoo: data.exString,
-        exStringBar: data.exString,
-        exStringFooBar: "foobar",
-        exIntFoo: data.exInt,
-        exFloatFoo: data.exFloat,
-        exTrueFoo: data.exTrue,
-        exFalseFoo: data.exFalse,
-        exObjFoo: {
+        exString: data.exString,
+        exObj: {
           exNestedStringFoo: data.exObj.exNestedString,
-          exNestedTrueFoo: data.exObj.exNestedTrue,
+          exNestedObj: {
+            exObjNestedStringFoo: data.exObj.exNestedObj.exObjNestedString,
+          },
         },
-        exObjArr: data.exObjArr.map((item) => {
-          return {
-            exString: item.exNestedString,
-            exStringRoot: data.exString,
-            exInt: item.exNestedInt,
-            exIntRoot: data.exInt,
-          };
-        }),
-        exObjNestedString: data.exObj.exNestedObj.exObjNestedString,
+        exObjArr: data.exObjArr.map(({ exNestedString }) => ({
+          exNestedString,
+        })),
       });
-      expect(result.exObjFoo.exNestedInt).toBeUndefined();
     });
-    test("it formats `fromConst` mappings as expected", () => {
+    test("from: works as expected", () => {
       const query = gql`
-        query FromConstExample {
-          exStringFoo(fromConst: "exStringConst")
-          exIntFoo(fromConst: 123456789)
-          exFloatFoo(fromConst: 123.456)
-          exTrueFoo(fromConst: true)
-          exFalseFoo(fromConst: false)
-          exObjFoo(fromConst: { alpha: "#alpha", bravo: "#bravo" })
-          exObjArr(fromConst: ["#alpha", "#bravo"])
+        query Example {
+          exString
+          exObj(from: "exObjFoo") @map {
+            exNestedStringFoo: exNestedString
+            exNestedObj @map {
+              exObjNestedStringFoo: exObjNestedString
+            }
+          }
+          exObjArr @map {
+            exNestedString
+          }
         }
       `;
       const result = map(query, data);
       expect(result).toEqual({
-        exStringFoo: "exStringConst",
-        exIntFoo: 123456789,
-        exFloatFoo: 123.456,
-        exTrueFoo: true,
-        exFalseFoo: false,
-        exObjFoo: { alpha: "#alpha", bravo: "#bravo" },
-        exObjArr: ["#alpha", "#bravo"],
+        exString: data.exString,
+        exObj: {
+          exNestedStringFoo: data.exObjFoo.exNestedString,
+          exNestedObj: {
+            exObjNestedStringFoo: data.exObjFoo.exNestedObj.exObjNestedString,
+          },
+        },
+        exObjArr: data.exObjArr.map(({ exNestedString }) => ({
+          exNestedString,
+        })),
       });
-      expect(result.exObjFoo.exNestedInt).toBeUndefined();
     });
-    test("it formats `fromRoot` mappings as expected", () => {
+    test("implicit @map works as expected", () => {
       const query = gql`
-        query FormatFromExample {
+        query Example {
+          exString
+          exObj(from: "exObjFoo") {
+            exNestedStringFoo: exNestedString
+            exNestedObj @map {
+              exObjNestedStringFoo: exObjNestedString
+            }
+          }
+          exObjArr @map {
+            exNestedString
+          }
+          foo {
+            bar(from: "exObj") {
+              exNestedStringFoo: exNestedString
+              exNestedObj @map {
+                exObjNestedStringFoo: exObjNestedString
+              }
+            }
+          }
           alpha {
             bravo {
-              charlie(from: "exObj") {
-                exStringFoo(from: "exNestedString") # => $.exObj.exNestedString
-                exStringFooBar(fromRoot: "exString") # => $.exString
-                exIntFooBar(fromRoot: "exInt")
-                exFloatFooBar(fromRoot: "exFloat")
-                exTrueFooBar(fromRoot: "exTrue")
-                exFalseFooBar(fromRoot: "exFalse")
-                exObjFooBar(fromRoot: "exObj") {
-                  exNestedStringFooBar(from: "exNestedString")
-                  exNestedTrueFooBar(from: "exNestedTrue")
+              charlie {
+                baz(from: "exObjFoo") {
+                  exNestedStringFoo: exNestedString
+                  exNestedObj @map {
+                    exObjNestedStringFoo: exObjNestedString
+                  }
                 }
               }
             }
           }
-          exStringFoo(from: "exString")
-          exIntFoo(from: "exInt")
-          exFloatFoo(from: "exFloat")
-          exTrueFoo(from: "exTrue")
-          exFalseFoo(from: "exFalse")
-          exObjFoo(from: "exObj") {
-            exNestedStringFoo(from: "exNestedString")
-            exNestedTrueFoo(from: "exNestedTrue")
-          }
         }
       `;
       const result = map(query, data);
       expect(result).toEqual({
-        exStringFoo: data.exString,
-        exIntFoo: data.exInt,
-        exFloatFoo: data.exFloat,
-        exTrueFoo: data.exTrue,
-        exFalseFoo: data.exFalse,
-        exObjFoo: {
-          exNestedStringFoo: data.exObj.exNestedString,
-          exNestedTrueFoo: data.exObj.exNestedTrue,
+        exString: data.exString,
+        exObj: {
+          exNestedStringFoo: data.exObjFoo.exNestedString,
+          exNestedObj: {
+            exObjNestedStringFoo: data.exObjFoo.exNestedObj.exObjNestedString,
+          },
+        },
+        exObjArr: data.exObjArr.map(({ exNestedString }) => ({
+          exNestedString,
+        })),
+        foo: {
+          bar: {
+            exNestedStringFoo: data.exObj.exNestedString,
+            exNestedObj: {
+              exObjNestedStringFoo: data.exObj.exNestedObj.exObjNestedString,
+            },
+          },
         },
         alpha: {
           bravo: {
             charlie: {
-              exStringFoo: data.exObj.exNestedString,
-              exStringFooBar: data.exString,
-              exIntFooBar: data.exInt,
-              exFloatFooBar: data.exFloat,
-              exTrueFooBar: data.exTrue,
-              exFalseFooBar: data.exFalse,
-              exObjFooBar: {
-                exNestedStringFooBar: data.exObj.exNestedString,
-                exNestedTrueFooBar: data.exObj.exNestedTrue,
+              baz: {
+                exNestedStringFoo: data.exObjFoo.exNestedString,
+                exNestedObj: {
+                  exObjNestedStringFoo:
+                    data.exObjFoo.exNestedObj.exObjNestedString,
+                },
               },
             },
           },
         },
       });
     });
-    test("it formats mixed mappings as expected", () => {
-      const data = {
-        charlie: "#charlie",
-        delta: [
-          {
-            echo: "delta#echo#0",
-            foxtrot: "delta#foxtrot#0",
-            gulf: "delta#gulf#0",
-            foo: "delta#foo#0",
-          },
-          {
-            echo: "delta#echo#2",
-            foxtrot: "delta#foxtrot#2",
-            gulf: "delta#gulf#2",
-            foo: "delta#foo#2",
-          },
-          {
-            echo: "delta#echo#2",
-            foxtrot: "delta#foxtrot#2",
-            gulf: "delta#gulf#2",
-            foo: "delta#foo#2",
-          },
-        ],
-        echo: "#echo",
-        foxtrot: "#foxtrot",
-        gulf: "#gulf",
-        india: "#india",
-        juliet: {
-          echo: "juliet#echo",
-          foxtrot: "juliet#foxtrot",
-          gulf: "juliet#gulf",
-          foo: "juliet#foo",
-          kilo: {
-            echo: "juliet#kilo#echo",
-            foxtrot: "juliet#kilo#foxtrot",
-            gulf: "juliet#kilo#gulf",
-            foo: "juliet#kilo#foo",
-          },
-        },
-      };
+  });
+  describe("filter", () => {
+    test("filter: works as expected on array root", () => {
       const query = gql`
-        {
-          alphaExample {
-            bravoExample {
-              charlie(from: "echo") # => $.echo
-              ExampleInvalidField(from: "ertyguhijo") # => none
-              ExampleFallbackField(
-                from: "erdtfgyvbhu"
-                defaultTo: "testdefault"
-              ) # => none
-            }
-            deltaExample(from: "delta") {
-              echo(from: "echo") # => $.delta.echo
-              foxtrot # => $.delta.foxtrot
-              gulf(from: "foo") # => $.delta.foo
-              gulfAbsolutePath(fromRoot: "gulf") # => $.gulf
-            }
-            hotelExample {
-              india # => $.india
-            }
-            julietPathExample {
-              echo(from: "juliet.kilo.echo") # => $.juliet.kilo.echo
-              foxtrot # => $.foxtrot
-              gulf(from: "juliet.kilo.foo") # => $.juliet.kilo.foo
-            }
-            julietPathPropExample(from: "juliet.kilo") {
-              echo(from: "echo") # => $.juliet.kilo.echo
-              foxtrot # => $.juliet.kilo.foxtrot
-              gulf(from: "foo") # => $.juliet.kilo.foo
-            }
-            julietPropPathExample(from: "juliet") {
-              echo(from: "kilo.echo") # => $.juliet.kilo.echo
-              foxtrot # => $.juliet.foxtrot
-              gulf(from: "foo") # => $.juliet.kilo.foo
-            }
+        query FilterExample {
+          exObjArr(filter: { exTag: "foo" }) {
+            exNestedString
           }
         }
       `;
       const result = map(query, data);
-      expect(result).toMatchObject({
-        alphaExample: {
-          bravoExample: {
-            charlie: data.echo,
-            ExampleFallbackField: "testdefault",
+      expect(result).toEqual({
+        exObjArr: [
+          {
+            exNestedString: data.exObjArr[0].exNestedString,
           },
-          deltaExample: [
-            {
-              echo: data.delta[0].echo,
-              foxtrot: data.delta[0].foxtrot,
-              gulf: data.delta[0].foo,
-              gulfAbsolutePath: data.gulf,
-            },
-            {
-              echo: data.delta[1].echo,
-              foxtrot: data.delta[1].foxtrot,
-              gulf: data.delta[1].foo,
-              gulfAbsolutePath: data.gulf,
-            },
-            {
-              echo: data.delta[2].echo,
-              foxtrot: data.delta[2].foxtrot,
-              gulf: data.delta[2].foo,
-              gulfAbsolutePath: data.gulf,
-            },
-          ],
-          hotelExample: {
-            india: data.india,
+          {
+            exNestedString: data.exObjArr[2].exNestedString,
           },
-          julietPathExample: {
-            echo: data.juliet.kilo.echo,
-            foxtrot: data.foxtrot,
-            gulf: data.juliet.kilo.foo,
+        ],
+      });
+    });
+    test("filter: works as expected on array child", () => {
+      const query = gql`
+        query FilterExample {
+          exObjArr @map {
+            exNestedString
+            exTag(filter: "foo")
+          }
+        }
+      `;
+      const result = map(query, data);
+      expect(result).toEqual({
+        exObjArr: [
+          {
+            exNestedString: data.exObjArr[0].exNestedString,
+            exTag: "foo",
           },
-          julietPathPropExample: {
-            echo: data.juliet.kilo.echo,
-            foxtrot: data.juliet.kilo.foxtrot,
-            gulf: data.juliet.kilo.foo,
+          {
+            exNestedString: data.exObjArr[1].exNestedString,
           },
-          julietPropPathExample: {
-            echo: data.juliet.kilo.echo,
-            foxtrot: data.juliet.foxtrot,
-            gulf: data.juliet.foo,
+          {
+            exNestedString: data.exObjArr[2].exNestedString,
+            exTag: "foo",
           },
-        },
+        ],
+      });
+    });
+    test("reject: works as expected", () => {
+      const query = gql`
+        query RejectExample {
+          exObjArr(reject: { exTag: "foo" }) {
+            exNestedString
+          }
+        }
+      `;
+      const result = map(query, data);
+      expect(result).toEqual({
+        exObjArr: [
+          {
+            exNestedString: data.exObjArr[1].exNestedString,
+          },
+        ],
+      });
+    });
+    test("filter: and reject: work together as expected", () => {
+      const query = gql`
+        query RejectExample {
+          exObjArr(filter: { exTag: "foo" }, reject: { exTag2: "bar" }) {
+            exNestedString
+          }
+        }
+      `;
+      const result = map(query, data);
+      expect(result).toEqual({
+        exObjArr: [
+          {
+            exNestedString: data.exObjArr[0].exNestedString,
+          },
+        ],
+      });
+    });
+    test("filter: and reject: can negate each other as expected", () => {
+      const query = gql`
+        query RejectExample {
+          exObjArr(filter: { exTag: "foo" }, reject: { exTag: "foo" }) {
+            exNestedString
+          }
+        }
+      `;
+      const result = map(query, data);
+      expect(result).toEqual({
+        exObjArr: [],
       });
     });
   });
-  describe("directives", () => {
-    describe("parseInt", () => {
-      test("it parses numeric string as integer", () => {
+  describe("transform", () => {
+    describe("@parseInt", () => {
+      test("it parses numeric string into integer", () => {
         const query = gql`
           query ParseIntExample {
-            exString
-            exInt
-            exFloat
-            exTrue
-            exFalse
+            exInt @parseInt
+            exFloat @parseInt
             exNumericString @parseInt
-            exNumericStringInt(from: "exNumericString") @parseInt
-            exObj
-            exObjArr
           }
         `;
         const result = map(query, data);
-        expect(result).toMatchObject({
-          exString: data.exString,
-          exInt: data.exInt,
-          exFloat: data.exFloat,
-          exTrue: data.exTrue,
-          exFalse: data.exFalse,
+        expect(result).toEqual({
+          exInt: parseInt(String(data.exInt)),
+          exFloat: parseInt(String(data.exFloat)),
           exNumericString: parseInt(data.exNumericString),
-          exNumericStringInt: parseInt(data.exNumericString),
-          exObj: data.exObj,
-          exObjArr: data.exObjArr,
         });
       });
     });
-    describe("parseFloat", () => {
-      test("it parses numeric string as float", () => {
+    describe("@parseFloat", () => {
+      test("it parses numeric string into float", () => {
         const query = gql`
-          query ParseIntExample {
-            exString
-            exInt
-            exFloat
-            exTrue
-            exFalse
+          query ParseFloatExample {
+            exInt @parseFloat
+            exFloat @parseFloat
             exNumericString @parseFloat
-            exNumericStringFloat(from: "exNumericString") @parseFloat
-            exObj
-            exObjArr
           }
         `;
         const result = map(query, data);
-        expect(result).toMatchObject({
-          exString: data.exString,
-          exInt: data.exInt,
-          exFloat: data.exFloat,
-          exTrue: data.exTrue,
-          exFalse: data.exFalse,
+        expect(result).toEqual({
+          exInt: parseFloat(String(data.exInt)),
+          exFloat: parseFloat(String(data.exFloat)),
           exNumericString: parseFloat(data.exNumericString),
-          exNumericStringFloat: parseFloat(data.exNumericString),
-          exObj: data.exObj,
-          exObjArr: data.exObjArr,
         });
       });
     });
-    describe("String", () => {
-      test("it stringifies value", () => {
+    describe("@String", () => {
+      test("it casts value to string", () => {
         const query = gql`
           query StringExample {
-            exString
-            exInt
-            exFloat
-            exObj
-            exIntString(from: "exInt") @String
-            exFloatString(from: "exFloat") @String
-            exObjString(from: "exObj") @String
+            exString @String
+            exInt @String
+            exFloat @String
+            exTrue @String
+            exFalse @String
+            exNull @String
+            exNumericString @String
           }
         `;
         const result = map(query, data);
-        expect(result).toMatchObject({
-          exString: data.exString,
-          exInt: data.exInt,
-          exFloat: data.exFloat,
-          exObj: data.exObj,
-          exIntString: String(data.exInt),
-          exFloatString: String(data.exFloat),
-          exObjString: String(data.exObj),
+        expect(result).toEqual({
+          exString: String(data.exString),
+          exInt: String(data.exInt),
+          exFloat: String(data.exFloat),
+          exTrue: String(data.exTrue),
+          exFalse: String(data.exFalse),
+          exNull: String(data.exNull),
+          exNumericString: String(data.exNumericString),
         });
       });
     });
-    describe("Boolean", () => {
-      test("it evalutes value to boolean", () => {
+    describe("@Boolean", () => {
+      test("it casts value to boolean", () => {
         const query = gql`
-          query StringExample {
-            exString
-            exInt
-            exFloat
-            exObj
-            exTrue
-            exFalse
-            exNull
-            exIntBool(from: "exInt") @Boolean
-            exFloatBool(from: "exFloat") @Boolean
-            exNullBool(from: "exNull") @Boolean
-            exTrueBool(from: "exTrue") @Boolean
-            exFalseBool(from: "exFalse") @Boolean
-            exObjBool(from: "exObj") @Boolean
+          query BooleanExample {
+            exString @Boolean
+            exInt @Boolean
+            exFloat @Boolean
+            exTrue @Boolean
+            exFalse @Boolean
+            exNull @Boolean
+            exNumericString @Boolean
           }
         `;
         const result = map(query, data);
-        expect(result).toMatchObject({
-          exString: data.exString,
-          exInt: data.exInt,
-          exFloat: data.exFloat,
-          exTrue: data.exTrue,
-          exFalse: data.exFalse,
-          exNull: data.exNull,
-          exNullBool: Boolean(data.exNull),
-          exIntBool: Boolean(data.exInt),
-          exTrueBool: Boolean(data.exTrue),
-          exFalseBool: Boolean(data.exFalse),
-          exFloatBool: Boolean(data.exFloat),
-          exObjBool: Boolean(data.exObj),
-          exObj: data.exObj,
+        expect(result).toEqual({
+          exString: Boolean(data.exString),
+          exInt: Boolean(data.exInt),
+          exFloat: Boolean(data.exFloat),
+          exTrue: Boolean(data.exTrue),
+          exFalse: Boolean(data.exFalse),
+          exNull: Boolean(data.exNull),
+          exNumericString: Boolean(data.exNumericString),
         });
       });
     });
-    describe("toJson", () => {
-      test("it stringifies to json", () => {
+    describe("@toJson", () => {
+      test("it formats value to JSON string", () => {
         const query = gql`
-          query ParseIntExample {
+          query ToJsonExample {
+            exString @toJson
+            exInt @toJson
+            exFloat @toJson
+            exTrue @toJson
+            exFalse @toJson
+            exNull @toJson
+            exNumericString @toJson
             exObj @toJson
           }
         `;
         const result = map(query, data);
-        expect(result).toMatchObject({
+        expect(result).toEqual({
+          exString: JSON.stringify(data.exString),
+          exInt: JSON.stringify(data.exInt),
+          exFloat: JSON.stringify(data.exFloat),
+          exTrue: JSON.stringify(data.exTrue),
+          exFalse: JSON.stringify(data.exFalse),
+          exNull: JSON.stringify(data.exNull),
+          exNumericString: JSON.stringify(data.exNumericString),
           exObj: JSON.stringify(data.exObj),
         });
       });
-    });
-    describe("concat", () => {
-      test("it concatenates string as expected", () => {
+      test("it ignores directive on parent node", () => {
         const query = gql`
-          query ConcatExample {
+          query IgnoresToJsonExample {
+            exString @toJson
+            exInt @toJson
+            exFloat @toJson
+            exTrue @toJson
+            exFalse @toJson
+            exNull @toJson
+            exNumericString @toJson
+            exObj @toJson
+            exObjFoo @toJson {
+              exNestedString
+            }
+          }
+        `;
+        const result = map(query, data);
+        expect(result).toEqual({
+          exString: JSON.stringify(data.exString),
+          exInt: JSON.stringify(data.exInt),
+          exFloat: JSON.stringify(data.exFloat),
+          exTrue: JSON.stringify(data.exTrue),
+          exFalse: JSON.stringify(data.exFalse),
+          exNull: JSON.stringify(data.exNull),
+          exNumericString: JSON.stringify(data.exNumericString),
+          exObj: JSON.stringify(data.exObj),
+          exObjFoo: {
+            exNestedString: data.exObjFoo.exNestedString,
+          },
+        });
+      });
+    });
+    describe("@not", () => {
+      test("it casts value to negated boolean", () => {
+        const query = gql`
+          query NotExample {
+            exString @not
+            exInt @not
+            exFloat @not
+            exTrue @not
+            exFalse @not
+            exNull @not
+            exNumericString @not
+          }
+        `;
+        const result = map(query, data);
+        expect(result).toEqual({
+          exString: not(data.exString),
+          exInt: not(data.exInt),
+          exFloat: not(data.exFloat),
+          exTrue: not(data.exTrue),
+          exFalse: not(data.exFalse),
+          exNull: not(data.exNull),
+          exNumericString: not(data.exNumericString),
+        });
+      });
+    });
+    describe("@of", () => {
+      test("it returns singleton array of value", () => {
+        const query = gql`
+          query OfExample {
+            exString @of
+            exInt @of
+            exFloat @of
+            exTrue @of
+            exFalse @of
+            exNull @of
+            exNumericString @of
+          }
+        `;
+        const result = map(query, data);
+        expect(result).toEqual({
+          exString: of(data.exString),
+          exInt: of(data.exInt),
+          exFloat: of(data.exFloat),
+          exTrue: of(data.exTrue),
+          exFalse: of(data.exFalse),
+          exNull: of(data.exNull),
+          exNumericString: of(data.exNumericString),
+        });
+      });
+    });
+    describe("@concat", () => {
+      test("it concats string before value", () => {
+        const query = gql`
+          query ConcatBeforeExample {
             exString @concat(before: "hello#")
-            exFoo(from: "exString") @concat(before: "foo#")
-            exBar(from: "exString") @concat(after: "#bar")
-            exFooBar(from: "exString") @concat(before: "foo#", after: "#bar")
           }
         `;
         const result = map(query, data);
-        expect(result).toMatchObject({
-          exString: `hello#${data.exString}`,
-          exFoo: `foo#${data.exString}`,
-          exBar: `${data.exString}#bar`,
-          exFooBar: `foo#${data.exString}#bar`,
+        expect(result).toEqual({
+          exString: String("hello#") + String(data.exString),
         });
       });
-    });
-    describe("add", () => {
-      test("it performs arithmetic add operation as expected", () => {
+      test("it concats string after value", () => {
         const query = gql`
-          query AddExample {
-            exInt
-            exPlus1(from: "exInt") @add(x: 1)
-            exMinus5(from: "exInt") @add(x: -5)
+          query ConcatAfter {
+            exString @concat(after: "#bye")
           }
         `;
         const result = map(query, data);
-        expect(result).toMatchObject({
-          exInt: data.exInt,
-          exPlus1: data.exInt + 1,
-          exMinus5: data.exInt - 5,
+        expect(result).toEqual({
+          exString: String(data.exString) + String("#bye"),
         });
       });
-    });
-    describe("add", () => {
-      test("it performs arithmetic add operation as expected", () => {
+      test("it concats string before and after value", () => {
         const query = gql`
-          query AddExample {
-            exInt
-            exPlus1(from: "exInt") @add(x: 1)
-            exMinus5(from: "exInt") @add(x: -5)
+          query ConcatAfter {
+            exString @concat(before: "#hello", after: "#bye")
           }
         `;
         const result = map(query, data);
-        expect(result).toMatchObject({
-          exInt: data.exInt,
-          exPlus1: data.exInt + 1,
-          exMinus5: data.exInt - 5,
+        expect(result).toEqual({
+          exString: String("#hello") + String(data.exString) + String("#bye"),
         });
       });
     });
-    describe("not", () => {
-      test("it evalutes to logical inverse of value", () => {
+    describe("@default", () => {
+      test("it concats string before value", () => {
         const query = gql`
-          query StringExample {
+          query DefaultToExample {
             exString
-            exInt
-            exFloat
-            exObj
-            exTrue
-            exFalse
-            exNull
-            exIntBool(from: "exInt") @Boolean @not
-            exFloatBool(from: "exFloat") @Boolean @not
-            exNullBool(from: "exNull") @Boolean @not
-            exTrueBool(from: "exTrue") @Boolean @not
-            exFalseBool(from: "exFalse") @Boolean @not
-            exObjBool(from: "exObj") @Boolean @not
+            exFooDoesNotExist @default(to: "hello")
           }
         `;
         const result = map(query, data);
-        expect(result).toMatchObject({
+        expect(result).toEqual({
           exString: data.exString,
-          exInt: data.exInt,
-          exFloat: data.exFloat,
-          exTrue: data.exTrue,
-          exFalse: data.exFalse,
-          exNull: data.exNull,
-          exNullBool: !Boolean(data.exNull),
-          exIntBool: !Boolean(data.exInt),
-          exTrueBool: !Boolean(data.exTrue),
-          exFalseBool: !Boolean(data.exFalse),
-          exFloatBool: !Boolean(data.exFloat),
-          exObjBool: !Boolean(data.exObj),
-          exObj: data.exObj,
+          exFooDoesNotExist: "hello",
         });
       });
-    });
-    describe("of", () => {
-      test("it evaluates to array of value", () => {
+      test("it concats string after value", () => {
         const query = gql`
-          query StringExample {
-            exString
-            exInt
-            exFloat
-            exObj
-            exIntOf(from: "exInt") @of
-            exFloatOf(from: "exFloat") @of
-            exObjOf(from: "exObj") @of
+          query ConcatAfter {
+            exString @concat(after: "#bye")
           }
         `;
         const result = map(query, data);
-        expect(result).toMatchObject({
-          exString: data.exString,
-          exInt: data.exInt,
-          exFloat: data.exFloat,
-          exObj: data.exObj,
-          exIntOf: of(data.exInt),
-          exFloatOf: of(data.exFloat),
-          exObjOf: of(data.exObj),
+        expect(result).toEqual({
+          exString: String(data.exString) + String("#bye"),
         });
       });
-    });
-    describe("head", () => {
-      test("it evaluates to first element of list", () => {
+      test("it concats string before and after value", () => {
         const query = gql`
-          query StringExample {
-            exObjArr
-            exObjArrHead(from: "exObjArr") @head
+          query ConcatAfter {
+            exString @concat(before: "#hello", after: "#bye")
           }
         `;
         const result = map(query, data);
-        expect(result).toMatchObject({
-          exObjArr: data.exObjArr,
-          exObjArrHead: head(data.exObjArr),
+        expect(result).toEqual({
+          exString: String("#hello") + String(data.exString) + String("#bye"),
         });
       });
     });
-    describe("tail", () => {
-      test("it evaluates to tail of list", () => {
+    describe("composed directives", () => {
+      test("it parses numeric string into integer", () => {
         const query = gql`
-          query StringExample {
-            exObjArr
-            exObjArrTail(from: "exObjArr") @tail
+          query ComposedExample {
+            exNumericString @parseInt @of @toJson
           }
         `;
         const result = map(query, data);
-        expect(result).toMatchObject({
-          exObjArr: data.exObjArr,
-          exObjArrTail: tail(data.exObjArr),
+        expect(result).toEqual({
+          exNumericString: JSON.stringify(of(parseInt(data.exNumericString))),
         });
       });
     });
-    describe("last", () => {
-      test("it evaluates to last element of list", () => {
-        const query = gql`
-          query StringExample {
-            exObjArr
-            exObjArrLast(from: "exObjArr") @last
-          }
-        `;
-        const result = map(query, data);
-        expect(result).toMatchObject({
-          exObjArr: data.exObjArr,
-          exObjArrLast: last(data.exObjArr),
-        });
-      });
-    });
-    describe("none", () => {
-      test("it evaluates to nothing", () => {
-        const query = gql`
-          query StringExample {
-            exString
-            exInt
-            exFloat
-            exObj
-            exIntString(from: "exInt") @none
-            exFloatString(from: "exFloat") @none
-            exObjString(from: "exObj") @none
-          }
-        `;
-        const result = map(query, data);
-        expect(result).toMatchObject({
-          exString: data.exString,
-          exInt: data.exInt,
-          exFloat: data.exFloat,
-          exObj: data.exObj,
-        });
-        expect(result.exIntString).toBeUndefined();
-        expect(result.exFloatString).toBeUndefined();
-        expect(result.exObjString).toBeUndefined();
+  });
+  describe("@const", () => {
+    test("it returns constant value", () => {
+      const query = gql`
+        query ConstExample {
+          exString
+          exInt
+          exConstStr @const(of: "hello")
+          exConstInt @const(of: 1234)
+          exConstTrue @const(of: true)
+          exConstFalse @const(of: false)
+          exConstNull @const(of: null)
+          exConstObj @const(of: { foo: "bar" })
+          exConstArr @const(of: [{ foo: "bar" }])
+        }
+      `;
+      const result = map(query, data);
+      expect(result).toEqual({
+        exString: data.exString,
+        exInt: data.exInt,
+        exConstStr: "hello",
+        exConstInt: 1234,
+        exConstTrue: true,
+        exConstFalse: false,
+        exConstNull: null,
+        exConstObj: { foo: "bar" },
+        exConstArr: [{ foo: "bar" }],
       });
     });
   });
