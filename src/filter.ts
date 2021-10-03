@@ -26,18 +26,18 @@ export function matches(
 
 export function filter(
   match: JsonSelector = undefined,
-  nomatch: JsonSelector = undefined,
+  noMatch: JsonSelector = undefined,
   parent: JsonChild,
   child = parent
 ): any {
-  if (!isset(match) && !isset(nomatch)) {
+  if (!isset(match) && !isset(noMatch)) {
     return child;
   }
   if (islist(parent)) {
-    return parent.filter((child) => filter(match, nomatch, child));
+    return parent.filter((child) => filter(match, noMatch, child));
   }
   if (matches(match, parent)) {
-    if (!matches(nomatch, parent, false)) {
+    if (!matches(noMatch, parent, false)) {
       return child;
     }
   }

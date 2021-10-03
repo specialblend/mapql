@@ -15,7 +15,7 @@ export type PathSelector = string | "@";
 export interface Filter {
   from?: PathSelector;
   match?: JsonSelector;
-  nomatch?: JsonSelector;
+  noMatch?: JsonSelector;
 }
 export type ExecRoot = any;
 export interface ExecArgs {

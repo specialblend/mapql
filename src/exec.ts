@@ -76,16 +76,16 @@ function execFilter(source: ExecSource, child: Maybe<JsonChild>) {
     const { root, args } = ex;
     const { filter: query } = args;
     if (isset(query)) {
-      const { from, match, nomatch } = query;
+      const { from, match, noMatch } = query;
       if (isset(from)) {
         const target = path(from, source, root);
         if (isset(target)) {
-          return filter(match, nomatch, target, child);
+          return filter(match, noMatch, target, child);
         }
         return;
       }
       if (isset(child)) {
-        return filter(match, nomatch, child);
+        return filter(match, noMatch, child);
       }
     }
     return child;
