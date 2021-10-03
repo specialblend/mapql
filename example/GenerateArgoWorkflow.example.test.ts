@@ -49,13 +49,10 @@ test("GenerateArgoWorkflow", () => {
                 parameter(
                   from: "name"
                   filter: { from: "@", selector: { sourceType: "input" } }
-                )
-                  #                  @prop(_: "name")
-                  @concat(before: "{{workflow.inputs.parameters.", after: "}}")
+                ) @concat(before: "{{workflow.inputs.parameters.", after: "}}")
                 configMapKeyRef(
-                  from: "@"
                   filter: { selector: { sourceType: "configmap" } }
-                ) {
+                ) @nomap {
                   name: sourceName
                   key: sourceKey
                 }

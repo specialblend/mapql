@@ -22,7 +22,7 @@ function isConst(info: ExecInfo): any {
 function shouldMap(args: any, info: ExecInfo) {
   const {
     isLeaf,
-    directives: { map: mapTag },
+    directives: { map: mapTag, nomap: noMapTag },
     field: { directives: directiveNodes = [] },
   } = info;
 
@@ -35,12 +35,13 @@ function shouldMap(args: any, info: ExecInfo) {
   const directiveIds = parseDirectiveIds(directiveNodes);
 
   return (
-    isLeaf ||
-    pathSelector ||
-    isset(mapTag) ||
-    isset(filterSelector) ||
-    isset(rejectSelector) ||
-    directiveIds.length
+    !isset(noMapTag) &&
+    (isLeaf ||
+      pathSelector ||
+      isset(mapTag) ||
+      isset(filterSelector) ||
+      isset(rejectSelector) ||
+      directiveIds.length)
   );
 }
 
@@ -67,13 +68,16 @@ function execFilters(
   child: JsonValue,
   data = child
 ) {
-  const execFilter = executesFilter(filter);
-  const execReject = executesFilter(reject);
-  const result = execFilter(filterQuery, parent, child, data) as JsonValue;
-  if (result) {
-    return execReject(rejectQuery, parent, result);
+  if (isset(filterQuery.selector) || isset(rejectQuery.selector)) {
+    const execFilter = executesFilter(filter);
+    const execReject = executesFilter(reject);
+    const result = execFilter(filterQuery, parent, child, data) as JsonValue;
+    if (result) {
+      return execReject(rejectQuery, parent, result);
+    }
+    return result;
   }
-  return result;
+  return child;
 }
 
 function executes(data: JsonRecord) {
@@ -88,28 +92,21 @@ function executes(data: JsonRecord) {
     if (isset(constValue)) {
       return constValue;
     }
+    const execDirectives = executesDirectives(info);
+    const {
+      from: pathSelector,
+      filter: filterQuery = { selector: undefined },
+      reject: rejectQuery = { selector: undefined },
+    } = args;
+
     if (shouldMap(args, info)) {
-      const execDirectives = executesDirectives(info);
-      const {
-        from: pathSelector,
-        filter: filterQuery = { selector: undefined },
-        reject: rejectQuery = { selector: undefined },
-      } = args;
       const pathName = isset(pathSelector) ? pathSelector : fieldName;
       const child = path(pathName, parent, data);
-      if (isset(filterQuery.selector) || isset(rejectQuery.selector)) {
-        const result = execFilters(
-          filterQuery,
-          rejectQuery,
-          parent,
-          child,
-          data
-        );
-        return execDirectives(result);
-      }
-      return execDirectives(child);
+      const result = execFilters(filterQuery, rejectQuery, parent, child, data);
+      return execDirectives(result);
     }
-    return parent;
+    const result = execFilters(filterQuery, rejectQuery, parent, parent, data);
+    return execDirectives(result);
   };
 }
 
