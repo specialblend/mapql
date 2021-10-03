@@ -1,11 +1,11 @@
 import gql from "graphql-tag";
-import map, { Json } from "../src";
+import map, { JsonRecord } from "../src";
 import exampleData from "./data.json";
 
 test("FilterActiveLeases", () => {
   const query = gql`
     query FilterActiveLeases {
-      leases(filter: { selector: { isActive: true } }) {
+      leases(filter: { match: { isActive: true } }) {
         isActive
         residents @map {
           name
@@ -19,7 +19,7 @@ test("FilterActiveLeases", () => {
       }
     }
   `;
-  const result = map(query, exampleData as Json);
+  const result = map(query, exampleData as JsonRecord);
   expect(result).toEqual(
     //
     {

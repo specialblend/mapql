@@ -1,5 +1,5 @@
 import gql from "graphql-tag";
-import map, { Json } from "../src";
+import map, { JsonRecord } from "../src";
 
 test("GenerateArgoWorkflow", () => {
   const data = {
@@ -43,13 +43,22 @@ test("GenerateArgoWorkflow", () => {
             image
             command
             args
-            env: parameters(
-              from: "parameters"
-              filter: { sourceType: "secret" }
-            ) {
+            env(from: "parameters") {
               name
               valueFrom {
-                secretKeyRef {
+                parameter(
+                  from: "name"
+                  filter: { from: "@", match: { sourceType: "input" } }
+                ) @concat(before: "{{workflow.inputs.parameters.", after: "}}")
+                configMapKeyRef(filter: { match: { sourceType: "configmap" } })
+                  @nomap {
+                  name: sourceName
+                  key: sourceKey
+                }
+                secretKeyRef(
+                  from: "@"
+                  filter: { match: { sourceType: "secret" } }
+                ) {
                   name: sourceName
                   key: sourceKey
                 }
@@ -66,7 +75,7 @@ test("GenerateArgoWorkflow", () => {
       }
     }
   `;
-  const result = map(query, data as Json);
+  const result = map(query, data as JsonRecord);
   expect(result).toEqual(
     //
     {
@@ -89,6 +98,21 @@ test("GenerateArgoWorkflow", () => {
                     key: "api-token",
                     name: "example-secret",
                   },
+                },
+              },
+              {
+                name: "API_URL",
+                valueFrom: {
+                  configMapKeyRef: {
+                    key: "api-url",
+                    name: "example-configmap",
+                  },
+                },
+              },
+              {
+                name: "SUBJECT",
+                valueFrom: {
+                  parameter: "{{workflow.inputs.parameters.SUBJECT}}",
                 },
               },
             ],

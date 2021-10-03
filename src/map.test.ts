@@ -320,10 +320,10 @@ describe("map", () => {
     });
   });
   describe("filter", () => {
-    test("filter: works as expected on array root", () => {
+    test("match works as expected on array root", () => {
       const query = gql`
         query FilterExample {
-          exObjArr(filter: { selector: { exTag: "foo" } }) {
+          exObjArr(filter: { match: { exTag: "foo" } }) {
             exNestedString
           }
         }
@@ -340,12 +340,12 @@ describe("map", () => {
         ],
       });
     });
-    test("filter: works as expected on array child", () => {
+    test("match works as expected on array child", () => {
       const query = gql`
         query FilterExample {
           exObjArr @map {
             exNestedString
-            exTag(filter: { selector: "foo" })
+            exTag(filter: { match: "foo" })
           }
         }
       `;
@@ -366,10 +366,10 @@ describe("map", () => {
         ],
       });
     });
-    test("reject: works as expected", () => {
+    test("nomatch works as expected", () => {
       const query = gql`
         query RejectExample {
-          exObjArr(reject: { selector: { exTag: "foo" } }) {
+          exObjArr(filter: { nomatch: { exTag: "foo" } }) {
             exNestedString
           }
         }
@@ -383,12 +383,11 @@ describe("map", () => {
         ],
       });
     });
-    test("filter: and reject: work together as expected", () => {
+    test("match and nomatch work together as expected", () => {
       const query = gql`
-        query RejectExample {
+        query MatchNoMatchExample {
           exObjArr(
-            filter: { selector: { exTag: "foo" } }
-            reject: { selector: { exTag2: "bar" } }
+            filter: { match: { exTag: "foo" }, nomatch: { exTag2: "bar" } }
           ) {
             exNestedString
           }
@@ -403,12 +402,11 @@ describe("map", () => {
         ],
       });
     });
-    test("filter: and reject: can negate each other as expected", () => {
+    test("match and nomatch can negate each other as expected", () => {
       const query = gql`
-        query RejectExample {
+        query MatchNoMatchExample {
           exObjArr(
-            filter: { selector: { exTag: "foo" } }
-            reject: { selector: { exTag: "foo" } }
+            filter: { match: { exTag: "foo" }, nomatch: { exTag: "foo" } }
           ) {
             exNestedString
           }
@@ -649,7 +647,7 @@ describe("map", () => {
       });
     });
     describe("@default", () => {
-      test("it concats string before value", () => {
+      test("it returns default value", () => {
         const query = gql`
           query DefaultToExample {
             exString

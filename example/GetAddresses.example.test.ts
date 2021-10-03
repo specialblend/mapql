@@ -1,5 +1,5 @@
 import gql from "graphql-tag";
-import map, { Json } from "../src";
+import map, { JsonRecord } from "../src";
 import exampleData from "./data.json";
 
 test("GetAddresses", () => {
@@ -57,7 +57,7 @@ test("GetAddresses", () => {
       }
     }
   `;
-  const result = map(query1, exampleData as Json);
+  const result = map(query1, exampleData as JsonRecord);
   expect(result).toEqual(
     //
     {
@@ -97,10 +97,10 @@ test("GetAddresses", () => {
       },
     }
   );
-  expect(map(query2, exampleData as Json)).toEqual(
-    map(query1, exampleData as Json)
+  expect(map(query2, exampleData as JsonRecord)).toEqual(
+    map(query1, exampleData as JsonRecord)
   );
-  expect(map(query3, exampleData as Json)).toEqual(
-    map(query1, exampleData as Json)
+  expect(map(query3, exampleData as JsonRecord)).toEqual(
+    map(query1, exampleData as JsonRecord)
   );
 });
