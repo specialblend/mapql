@@ -7,14 +7,12 @@ export function path(selector: PathSelector, data: JsonRecord, parent = data) {
     if (typeof source === "object" || source !== null) {
       return source;
     }
-    return {};
   }
   if (selector[0] === "$") {
     const [source] = jp.query(data, selector);
     if (typeof source === "object" || source !== null) {
       return source;
     }
-    return {};
   }
   const [source] = jp.query(parent, selector);
   if (typeof source === "object" || source !== null) {
