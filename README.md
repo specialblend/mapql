@@ -219,17 +219,18 @@ query GetAddresses3 {
 
 ```graphql
 query FilterActiveLeases {
-  leases(filter: { isActive: true }) {
-    residents @map {
-      name
-      email
+    leases(filter: { isActive: true }) {
+        isActive
+        residents @map {
+            name
+            email
+        }
+        address @map {
+            street
+            city
+            zipCode
+        }
     }
-    address @map {
-      street
-      city
-      zipCode
-    }
-  }
 }
 ```
 
