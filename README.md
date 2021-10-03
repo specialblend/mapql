@@ -315,8 +315,8 @@ query FilterByStateCode {
 
 ```graphql
 query TransformLeases {
-    leases(from: "leases") {
-        contractNumber(from: "leaseId") @String @concat(before: "#")
+    leases @map {
+        contractNumber: leaseId @String @concat(before: "#")
         # transformer ignored on parent node (address)
         address @toJson {
             street(from: "street")
