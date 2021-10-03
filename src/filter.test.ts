@@ -28,7 +28,7 @@ describe("matches", () => {
     expect(matches(foo, data)).toBe(true);
     expect(matches({}, data)).toBe(true);
   });
-  test("it returns true when data obj contains selector obj", () => {
+  test("it returns true when data obj contains match obj", () => {
     const faz = {
       alpha: {
         foo: "bar",
@@ -41,7 +41,7 @@ describe("matches", () => {
         },
       },
     };
-    const selector = {
+    const match = {
       alpha: {
         bravo: {
           baz: "faz",
@@ -51,7 +51,7 @@ describe("matches", () => {
         },
       },
     };
-    expect(matches(selector, faz)).toBe(true);
+    expect(matches(match, faz)).toBe(true);
   });
   test("it returns true when data obj is filter obj", () => {
     const data = {
@@ -98,69 +98,69 @@ describe("matches", () => {
 });
 
 describe("filter", () => {
-  test("it returns data when selector matches root", () => {
-    const selector: JsonSelector = {
+  test("it returns data when match matches root", () => {
+    const match: JsonSelector = {
       alpha: "#alpha",
       bravo: "#bravo",
     };
     const root = {
-      ...selector,
+      ...match,
       charlie: "#charlie",
     };
-    const result = filter(selector, root);
+    const result = filter(match, undefined, root);
     expect(result).toBe(root);
   });
-  test("it returns nothing when selector does not match root", () => {
-    const selector: JsonSelector = {
+  test("it returns nothing when match does not match root", () => {
+    const match: JsonSelector = {
       alpha: "#alpha",
       bravo: "#bravo",
     };
     const root = {
-      ...selector,
+      ...match,
       bravo: "#notbravo",
       charlie: "#charlie",
     };
-    const result = filter(selector, root);
+    const result = filter(match, undefined, root);
     expect(result).toBeUndefined();
   });
-  test("it returns array values matching selector", () => {
-    const selector: JsonSelector = {
+  test("it returns array values matching match", () => {
+    const match: JsonSelector = {
       alpha: "#alpha",
       bravo: "#bravo",
     };
     const matchesSelector = [
       {
-        ...selector,
+        ...match,
         charlie: "#charlie1",
       },
       {
-        ...selector,
+        ...match,
         charlie: "#charlie2",
       },
       {
-        ...selector,
+        ...match,
         charlie: "#charlie3",
       },
     ];
     const notMatchesSelector = [
       {
-        ...selector,
+        ...match,
         alpha: "#notalpha",
         charlie: "#charlie1",
       },
       {
-        ...selector,
+        ...match,
         alpha: "#notalpha",
         charlie: "#charlie2",
       },
       {
-        ...selector,
+        ...match,
         alpha: "#notalpha",
         charlie: "#charlie2",
       },
     ];
     const root = [...matchesSelector, ...notMatchesSelector];
-    const result = filter(selector, root);
+    const result = filter(match, undefined, root);
     expect(result).toEqual(matchesSelector);
   });
 });

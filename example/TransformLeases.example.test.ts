@@ -1,7 +1,7 @@
 import exampleData from "./data.json";
 import gql from "graphql-tag";
 
-import map, { Json } from "../src";
+import map, { JsonRecord } from "../src";
 
 test("TransformLeases", () => {
   const query = gql`
@@ -10,17 +10,17 @@ test("TransformLeases", () => {
         contractNumber: leaseId @String @concat(before: "#")
         # transformer ignored on parent node (address)
         address @toJson {
-          street(from: "street")
+          street
           streetLine2 @default(to: "N/A")
-          city(from: "city")
-          stateCode(from: "stateCode")
-          zipCode(from: "zipCode") @parseInt
+          city
+          stateCode
+          zipCode @parseInt
         }
       }
       reportMetaJson: reportMeta @toJson
     }
   `;
-  const result = map(query, exampleData as Json);
+  const result = map(query, exampleData as JsonRecord);
   expect(result).toEqual(
     //
     {
