@@ -1,8 +1,7 @@
 import exampleData from "./data.json";
 import gql from "graphql-tag";
 
-import map from "../src";
-import { Json } from "../src/contract";
+import map, { Json } from "../src";
 
 test("TransformLeases", () => {
   const query = gql`
