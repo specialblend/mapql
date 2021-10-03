@@ -107,12 +107,8 @@ describe("filter", () => {
       ...selector,
       charlie: "#charlie",
     };
-    const data = {
-      delta: "#delta",
-      echo: "#echo",
-    };
     const result = filter(selector, root);
-    expect(result).toBe(data);
+    expect(result).toBe(root);
   });
   test("it returns nothing when selector does not match root", () => {
     const selector: JsonSelector = {

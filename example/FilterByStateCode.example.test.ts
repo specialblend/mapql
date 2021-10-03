@@ -1,5 +1,5 @@
 import gql from "graphql-tag";
-import map from "../src";
+import map, { Json } from "../src";
 import exampleData from "./data.json";
 
 test("FilterByStateCode", () => {
@@ -18,7 +18,7 @@ test("FilterByStateCode", () => {
       }
     }
   `;
-  const result = map(query, exampleData);
+  const result = map(query, exampleData as Json);
   expect(result).toEqual({
     leases: [
       ...exampleData.leases

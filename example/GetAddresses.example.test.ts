@@ -2,6 +2,7 @@ import exampleData from "./data.json";
 import gql from "graphql-tag";
 
 import map from "../src";
+import { Json } from "../src/contract";
 
 test("GetAddresses", () => {
   const query1 = gql`
@@ -41,7 +42,7 @@ test("GetAddresses", () => {
     }
   `;
   const query3 = gql`
-    query GetAddresses3 {
+    {
       leases @map {
         contractNumber: leaseId
         address @map {
@@ -58,7 +59,7 @@ test("GetAddresses", () => {
       }
     }
   `;
-  const result = map(query1, exampleData);
+  const result = map(query1, exampleData as Json);
   expect(result).toEqual(
     //
     {
@@ -98,6 +99,10 @@ test("GetAddresses", () => {
       },
     }
   );
-  expect(map(query2, exampleData)).toEqual(map(query1, exampleData));
-  expect(map(query3, exampleData)).toEqual(map(query1, exampleData));
+  expect(map(query2, exampleData as Json)).toEqual(
+    map(query1, exampleData as Json)
+  );
+  expect(map(query3, exampleData as Json)).toEqual(
+    map(query1, exampleData as Json)
+  );
 });

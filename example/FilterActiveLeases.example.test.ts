@@ -1,5 +1,5 @@
 import gql from "graphql-tag";
-import map from "../src";
+import map, { Json } from "../src";
 import exampleData from "./data.json";
 
 test("FilterActiveLeases", () => {
@@ -19,7 +19,7 @@ test("FilterActiveLeases", () => {
       }
     }
   `;
-  const result = map(query, exampleData);
+  const result = map(query, exampleData as Json);
   expect(result).toEqual(
     //
     {
