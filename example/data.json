@@ -1,0 +1,67 @@
+{
+  "leases": [
+    {
+      "leaseId": 1234,
+      "residents": [
+        {
+          "name": "Alice",
+          "dob": "1/1/1111",
+          "email": "alice@example.com"
+        },
+        {
+          "name": "Bob",
+          "dob": "12/12/1212",
+          "email": "bob@example.com"
+        }
+      ],
+      "address": {
+        "street": "1234 Main St.",
+        "city": "New York City",
+        "state": "NY",
+        "zipCode": "11210"
+      }
+    },
+    {
+      "leaseId": 2345,
+      "residents": [
+        {
+          "name": "John Smith",
+          "dob": "2/2/2222",
+          "email": "john.smith@example.com"
+        },
+        {
+          "name": "Jane Doe",
+          "dob": "11/11/1111",
+          "email": "jane.doe@example.com"
+        }
+      ],
+      "address": {
+        "street": "1333 3rd St.",
+        "city": "Newark",
+        "state": "NJ",
+        "zipCode": "07195"
+      }
+    },
+    {
+      "leaseId": 4567,
+      "residents": [
+        {
+          "name": "Alice",
+          "dob": "1/1/1111",
+          "email": "alice@example.com"
+        },
+        {
+          "name": "Bob",
+          "dob": "12/12/1212",
+          "email": "bob@example.com"
+        }
+      ],
+      "address": {
+        "street": "1333 3rd St.",
+        "city": "Newark",
+        "state": "NJ",
+        "zipCode": "07195"
+      }
+    }
+  ]
+}
