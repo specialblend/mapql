@@ -1,5 +1,5 @@
 import { DirectiveNode } from "graphql";
-import { DirectiveId, DirectiveMap, Exec, JsonRecord } from "./contract";
+import { DirectiveId, Exec, JsonRecord } from "./contract";
 import {
   defaultTo,
   has,
@@ -34,8 +34,8 @@ export const DIRECTIVES: Record<string, CallableFunction> = {
   init: (args?: any) => init, // TODO unit test
   tail: (args?: any) => tail, // TODO unit test
   last: (args?: any) => last, // TODO unit test
-  prop: (args?: any) => prop(args._),
-  path: (args?: any) => path(args._),
+  prop: (args?: any) => prop(args._), // TODO unit test
+  path: (args?: any) => path(args._), // TODO unit test
 };
 
 function withx(fn: CallableFunction) {

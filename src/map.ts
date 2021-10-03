@@ -1,8 +1,8 @@
 import { DocumentNode } from "graphql";
 import { JsonRecord } from "./contract";
 import graphql from "graphql-anywhere";
-import { exQuery } from "./ex";
+import { exec } from "./exec";
 
 export function map(query: DocumentNode, data: JsonRecord) {
-  return graphql(exQuery(data), query, data);
+  return graphql(exec(data), query, data);
 }

@@ -1,5 +1,5 @@
-import { filter, matches } from "./filter";
 import { JsonSelector } from "./contract";
+import { filter, matches } from "./filter";
 
 describe("matches", () => {
   const foo = {

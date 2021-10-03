@@ -1,4 +1,4 @@
-import { DirectiveMap, Exec, ExecSource, JsonChild, Maybe } from "./contract";
+import { Exec, ExecSource, JsonChild, Maybe } from "./contract";
 import { path } from "./path";
 import { filter } from "./filter";
 import { mapDxIds, pipeDx } from "./transform";
@@ -120,7 +120,7 @@ function execConst(source: ExecSource) {
   };
 }
 
-export function exQuery(source: ExecSource) {
+export function exec(source: ExecSource) {
   return applyEx(function exec(ex: Exec): any {
     const constValue = execConst(source)(ex);
     if (isset(constValue)) {
