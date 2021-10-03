@@ -220,7 +220,7 @@ query GetAddresses2 {
 
 ```graphql
 query FilterActiveLeases {
-    leases(filter: { isActive: true }) {
+    leases(filter: { selector: { isActive: true } }) {
         isActive
         residents @map {
             name
@@ -288,13 +288,13 @@ query FilterActiveLeases {
 
 #### 💡 concepts
 
-- ✅ `foo(filter: { bar: "baz" })` can be used to filter fields using structured selectors.
+- ✅ `foo(filter: { selector: { bar: "baz" } })` can be used to filter fields using structured selectors.
 
 ⭕ using nested selector:
 
 ```graphql
 query FilterByStateCode {
-  leases(filter: { address: { stateCode: "NJ" } }) {
+  leases(filter: { selector: { address: { stateCode: "NJ" } } }) {
     residents @map {
       name
       email

@@ -5,7 +5,7 @@ import exampleData from "./data.json";
 test("FilterActiveLeases", () => {
   const query = gql`
     query FilterActiveLeases {
-      leases(filter: { isActive: true }) {
+      leases(filter: { selector: { isActive: true } }) {
         isActive
         residents @map {
           name

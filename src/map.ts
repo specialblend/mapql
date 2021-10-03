@@ -1,4 +1,4 @@
-import { Json, JsonRecord, JsonSelector, JsonValue, MapArgs } from "./contract";
+import { FilterQuery, Json, JsonRecord, JsonValue, MapArgs } from "./contract";
 import { DocumentNode } from "graphql";
 import graphql, { ExecInfo } from "graphql-anywhere";
 import { fixInfo, isset, orEmpty } from "./util";
@@ -44,15 +44,34 @@ function shouldMap(args: any, info: ExecInfo) {
   );
 }
 
+function executesFilter(executor: typeof filter | typeof reject) {
+  return function execFilter(
+    query: FilterQuery,
+    parent: JsonValue,
+    child: JsonValue
+  ) {
+    const { from, selector } = query;
+    if (from) {
+      const target = path(from, parent as JsonRecord);
+      return executor(selector, target, child);
+    }
+    return executor(selector, child);
+  };
+}
+
 function execFilters(
-  filterSelector: JsonSelector,
-  rejectSelector: JsonSelector,
-  data: JsonValue
+  filterQuery: FilterQuery,
+  rejectQuery: FilterQuery,
+  parent: JsonValue,
+  child: JsonValue
 ) {
-  const result = filter(filterSelector, data);
+  const execFilter = executesFilter(filter);
+  const execReject = executesFilter(reject);
+  const result = execFilter(filterQuery, parent, child) as JsonValue;
   if (result) {
-    return reject(rejectSelector, result);
+    return execReject(rejectQuery, parent, result);
   }
+  return result;
 }
 
 function exec(
@@ -70,13 +89,14 @@ function exec(
     const execDirectives = executesDirectives(info);
     const {
       from: pathSelector,
-      filter: filterSelector,
-      reject: rejectSelector,
+      filter: filterQuery = { selector: undefined },
+      reject: rejectQuery = { selector: undefined },
     } = args;
     const pathName = pathSelector || fieldName;
     const child = path(pathName, parent);
-    if (isset(filterSelector) || isset(rejectSelector)) {
-      return execFilters(filterSelector, rejectSelector, child);
+    if (isset(filterQuery.selector) || isset(rejectQuery.selector)) {
+      const result = execFilters(filterQuery, rejectQuery, parent, child);
+      return execDirectives(result);
     }
     return execDirectives(child);
   }
