@@ -37,13 +37,16 @@ test("GenerateArgoWorkflow", () => {
       }
       spec {
         entrypoint @default(to: "main")
-        templates @map {
+        templates {
           name: entrypoint @default(to: "main")
           container {
             image
             command
             args
-            env: parameters(filter: { sourceType: "secret" }) {
+            env: parameters(
+              from: "parameters"
+              filter: { sourceType: "secret" }
+            ) {
               name
               valueFrom {
                 secretKeyRef {
@@ -74,19 +77,31 @@ test("GenerateArgoWorkflow", () => {
       },
       spec: {
         entrypoint: "whalesay",
-        templates: [
-          {
-            container: {
-              resources: {
-                limits: {
-                  cpu: "100m",
-                  memory: "32Mi",
+        templates: {
+          container: {
+            args: ["hello world"],
+            command: ["cowsay"],
+            env: [
+              {
+                name: "API_TOKEN",
+                valueFrom: {
+                  secretKeyRef: {
+                    key: "api-token",
+                    name: "example-secret",
+                  },
                 },
               },
+            ],
+            image: "docker/whalesay",
+            resources: {
+              limits: {
+                cpu: "100m",
+                memory: "32Mi",
+              },
             },
-            name: "main",
           },
-        ],
+          name: "whalesay",
+        },
       },
     }
   );
