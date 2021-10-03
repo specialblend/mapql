@@ -9,9 +9,12 @@ import {
   last,
   not,
   of,
+  prop,
+  path,
   pipe,
   tail,
 } from "rambda";
+import { isset } from "./util";
 
 type DirectiveMap = typeof DIRECTIVES;
 type DirectiveId = keyof DirectiveMap;
@@ -35,6 +38,8 @@ const DIRECTIVES: Record<string, CallableFunction> = {
   init: (args?: any) => init, // TODO unit test
   tail: (args?: any) => tail, // TODO unit test
   last: (args?: any) => last, // TODO unit test
+  prop: (args?: any) => prop(args._),
+  path: (args?: any) => path(args._),
 };
 
 function withx(fn: CallableFunction) {
@@ -102,8 +107,11 @@ export function executesDirectives(info: ExecInfo) {
     field: { directives: nodes = [] },
   } = info;
   if (isLeaf) {
-    return function execDirective(result: any) {
-      return pipeDirectives(directives as Partial<DirectiveMap>, nodes)(result);
+    return function execDirective(data: any) {
+      const exec = pipeDirectives(directives as Partial<DirectiveMap>, nodes);
+      if (isset(data) || isset(directives.default)) {
+        return exec(data);
+      }
     };
   }
   return function execNoDirective(result: any) {
