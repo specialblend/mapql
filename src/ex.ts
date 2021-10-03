@@ -1,14 +1,4 @@
-import { ExecInfo } from "graphql-anywhere";
-
-import {
-  DirectiveMap,
-  Exec,
-  ExecSource,
-  JsonChild,
-  JsonRecord,
-  Maybe,
-} from "./contract";
-
+import { DirectiveMap, Exec, ExecSource, JsonChild, Maybe } from "./contract";
 import { path } from "./path";
 import { filter } from "./filter";
 import { mapDxIds, pipeDx } from "./transform";
@@ -73,18 +63,19 @@ function execPath(source: ExecSource) {
   return function (ex: Exec): Maybe<JsonChild> {
     const { fieldName, root, args, info } = ex;
     if (shouldExPath(ex)) {
-      const { from: pathSelector } = args;
-      const pathName = isset(pathSelector) ? pathSelector : fieldName;
+      const { from: selector } = args;
+      const pathName = isset(selector) ? selector : fieldName;
       return path(pathName, source, root);
     }
     return root;
   };
 }
+
 function execFilter(source: ExecSource, child: Maybe<JsonChild>) {
   return function (ex: Exec): Maybe<JsonChild> {
     const { root, args } = ex;
-    const { filter: query = { match: undefined, nomatch: undefined } } = args;
-    if (isset(query.match) || isset(query.nomatch)) {
+    const { filter: query } = args;
+    if (isset(query)) {
       const { from, match, nomatch } = query;
       if (isset(from)) {
         const target = path(from, source, root);

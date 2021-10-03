@@ -36,14 +36,7 @@ export function filter(
   child = parent
 ): any {
   if (islist(parent)) {
-    return parent.filter((child) =>
-      filter(
-        //
-        match,
-        nomatch,
-        child
-      )
-    );
+    return parent.filter((child) => filter(match, nomatch, child));
   }
   if (matches(match, parent)) {
     if (!matches(nomatch, parent)) {
