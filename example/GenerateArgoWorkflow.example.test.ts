@@ -43,13 +43,26 @@ test("GenerateArgoWorkflow", () => {
             image
             command
             args
-            env: parameters(
-              from: "parameters"
-              filter: { sourceType: "secret" }
-            ) {
+            env(from: "parameters") {
               name
               valueFrom {
-                secretKeyRef {
+                parameter(
+                  from: "$"
+                  filter: { selector: { sourceType: "input" } }
+                )
+                  @prop(_: "name")
+                  @concat(before: "{{workflow.inputs.parameters.", after: "}}")
+                configMapKeyRef(
+                  from: "$"
+                  filter: { selector: { sourceType: "configmap" } }
+                ) {
+                  name: sourceName
+                  key: sourceKey
+                }
+                secretKeyRef(
+                  from: "$"
+                  filter: { selector: { sourceType: "secret" } }
+                ) {
                   name: sourceName
                   key: sourceKey
                 }
@@ -89,6 +102,21 @@ test("GenerateArgoWorkflow", () => {
                     key: "api-token",
                     name: "example-secret",
                   },
+                },
+              },
+              {
+                name: "API_URL",
+                valueFrom: {
+                  configMapKeyRef: {
+                    key: "api-url",
+                    name: "example-configmap",
+                  },
+                },
+              },
+              {
+                name: "SUBJECT",
+                valueFrom: {
+                  parameter: "{{workflow.inputs.parameters.SUBJECT}}",
                 },
               },
             ],
