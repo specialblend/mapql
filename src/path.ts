@@ -1,9 +1,16 @@
-import { JsonParent, JsonRecord, PathSelector } from "./contract";
+import {
+  JsonChild,
+  JsonParent,
+  JsonRecord,
+  Maybe,
+  PathSelector,
+} from "./contract";
 import jp from "jsonpath";
+import { isset } from "./util";
 
-function jsonpath(selector: string, data: JsonParent) {
+function jsonpath(selector: string, data: JsonParent): Maybe<JsonChild> {
   const [child] = jp.query(data, selector);
-  if (typeof child === "object" || child !== null) {
+  if (isset(child)) {
     return child;
   }
 }
@@ -12,7 +19,7 @@ export function path(
   selector: PathSelector,
   source: JsonRecord,
   parent: JsonParent = source
-) {
+): Maybe<JsonChild> {
   if (selector === "@") {
     return jsonpath("$", parent);
   }

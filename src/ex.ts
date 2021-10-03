@@ -88,7 +88,10 @@ function execFilter(ex: Exec) {
       const { from, match, nomatch } = query;
       if (isset(from)) {
         const target = path(from, source, root);
-        return filter(match, nomatch, target, child);
+        if (isset(target)) {
+          return filter(match, nomatch, target, child);
+        }
+        return;
       }
       return filter(match, nomatch, child);
     }
