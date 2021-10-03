@@ -29,15 +29,17 @@ export type ExecCtx = any;
 export type ExecData = JsonRecord;
 export type ExecParent = any;
 export type ExecChild = JsonChild;
-export type Exec = [
-  string,
-  ExecRoot,
-  ExecArgs,
-  ExecCtx,
-  ExecInfo,
-  ExecData?,
-  ExecParent?,
-  ExecChild?
-];
+
+export type Exec = {
+  fieldName: string;
+  root: ExecRoot;
+  args: ExecArgs;
+  context: ExecCtx;
+  info: ExecInfo;
+  data?: ExecData;
+  parent?: ExecParent;
+  child?: ExecChild;
+};
+
 export type DirectiveMap = typeof DIRECTIVES;
 export type DirectiveId = keyof DirectiveMap;

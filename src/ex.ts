@@ -1,4 +1,5 @@
 import { ExecInfo } from "graphql-anywhere";
+
 import {
   DirectiveMap,
   Exec,
@@ -6,6 +7,7 @@ import {
   JsonChild,
   JsonRecord,
 } from "./contract";
+
 import { path } from "./path";
 import { filter } from "./filter";
 import { mapDxIds, pipeDx } from "./transform";
@@ -58,17 +60,18 @@ function applyEx(fn: (ex: Exec) => any) {
     context: any,
     info: any
   ): Exec {
-    return fn([
+    return fn({
       fieldName,
-      orEmpty(root),
-      orEmpty(args),
-      orEmpty(context),
-      fixInfo(info),
-    ]);
+      root: orEmpty(root),
+      args: orEmpty(args),
+      context: orEmpty(context),
+      info: fixInfo(info),
+    });
   };
 }
 
-function exPath([fieldName, root, args, context, info]: Exec) {
+function execPath(ex: Exec) {
+  const { fieldName, root, args, context, info, data } = ex;
   return function exPath(data: ExecData) {
     if (shouldExPath(args, info)) {
       const { from: pathSelector } = args;
@@ -79,7 +82,8 @@ function exPath([fieldName, root, args, context, info]: Exec) {
   };
 }
 
-function exFilter([fieldName, root, args, context, info, data]: Exec) {
+function execFilter(ex: Exec) {
+  const { fieldName, root, args, context, info, data } = ex;
   return function exFilter(child: JsonChild) {
     const { filter: query = { match: undefined, nomatch: undefined } } = args;
     if (isset(query.match) || isset(query.nomatch)) {
@@ -94,7 +98,8 @@ function exFilter([fieldName, root, args, context, info, data]: Exec) {
   };
 }
 
-function exDirectives([fieldName, root, args, context, info, data]: Exec) {
+function execDirectives(ex: Exec) {
+  const { fieldName, root, args, context, info, data } = ex;
   const {
     isLeaf,
     directives,
@@ -113,7 +118,8 @@ function exDirectives([fieldName, root, args, context, info, data]: Exec) {
   };
 }
 
-function exConst([fieldName, root, args, context, info]: Exec) {
+function execConst(ex: Exec) {
+  const { fieldName, root, args, context, info, data } = ex;
   return function exConst(data: ExecData) {
     const constValue = isConst(info);
     if (isset(constValue)) {
@@ -124,14 +130,14 @@ function exConst([fieldName, root, args, context, info]: Exec) {
 
 export function exQuery(data: ExecData) {
   return applyEx(function exec(ex: Exec) {
-    const execConst = exConst(ex);
-    const execPath = exPath(ex);
-    const execFilters = exFilter(ex);
-    const execDirectives = exDirectives(ex);
-    const constValue = execConst(data);
+    const exConst = execConst(ex);
+    const constValue = exConst(data);
     if (isset(constValue)) {
       return constValue;
     }
-    return execDirectives(execFilters(execPath(data)));
+    const exPath = execPath(ex);
+    const exFilter = execFilter(ex);
+    const exDirectives = execDirectives(ex);
+    return exDirectives(exFilter(exPath(data)));
   });
 }
