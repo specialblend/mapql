@@ -13,11 +13,13 @@ import { filter } from "./filter";
 import { mapDxIds, pipeDx } from "./transform";
 import { fixInfo, isset, orEmpty } from "./util";
 
-function isConst(info: ExecInfo): any {
+function isConst(ex: Exec): any {
   const {
-    isLeaf,
-    directives: { const: constTag },
-  } = info;
+    info: {
+      isLeaf,
+      directives: { const: constTag },
+    },
+  } = ex;
   if (isLeaf && constTag) {
     const { of: constValue } = constTag;
     if (isset(constValue)) {
@@ -26,18 +28,15 @@ function isConst(info: ExecInfo): any {
   }
 }
 
-function shouldExPath(args: any, info: ExecInfo) {
+function shouldExPath(ex: Exec) {
   const {
-    isLeaf,
-    directives: { map: mapTag, nomap: noMapTag },
-    field: { directives: directiveNodes = [] },
-  } = info;
-
-  const {
-    from: pathSelector,
-    filter: filterSelector,
-    reject: rejectSelector,
-  } = args;
+    args: { from: pathSelector, filter: filterSelector },
+    info: {
+      isLeaf,
+      directives: { map: mapTag, nomap: noMapTag },
+      field: { directives: directiveNodes = [] },
+    },
+  } = ex;
 
   const directiveIds = mapDxIds(directiveNodes);
 
@@ -47,7 +46,6 @@ function shouldExPath(args: any, info: ExecInfo) {
       pathSelector ||
       isset(mapTag) ||
       isset(filterSelector) ||
-      isset(rejectSelector) ||
       directiveIds.length)
   );
 }
@@ -71,9 +69,9 @@ function applyEx(fn: (ex: Exec) => any) {
 }
 
 function execPath(ex: Exec) {
-  const { fieldName, root, args, context, info, data } = ex;
+  const { fieldName, root, args, info } = ex;
   return function exPath(data: ExecData) {
-    if (shouldExPath(args, info)) {
+    if (shouldExPath(ex)) {
       const { from: pathSelector } = args;
       const pathName = isset(pathSelector) ? pathSelector : fieldName;
       return path(pathName, data, root);
@@ -83,7 +81,7 @@ function execPath(ex: Exec) {
 }
 
 function execFilter(ex: Exec) {
-  const { fieldName, root, args, context, info, data } = ex;
+  const { root, args, data } = ex;
   return function exFilter(child: JsonChild) {
     const { filter: query = { match: undefined, nomatch: undefined } } = args;
     if (isset(query.match) || isset(query.nomatch)) {
@@ -99,29 +97,24 @@ function execFilter(ex: Exec) {
 }
 
 function execDirectives(ex: Exec) {
-  const { fieldName, root, args, context, info, data } = ex;
   const {
-    isLeaf,
-    directives,
-    field: { directives: nodes = [] },
-  } = info;
-  if (isLeaf || true) {
-    return function exDirectives(data: any) {
-      const exec = pipeDx(directives as Partial<DirectiveMap>, nodes);
-      if (isset(data) || isset(directives.default)) {
-        return exec(data);
-      }
-    };
-  }
-  return function execNoDirective(result: any) {
-    return result;
+    info: {
+      // isLeaf,
+      directives,
+      field: { directives: nodes = [] },
+    },
+  } = ex;
+  return function (data: any) {
+    const exec = pipeDx(directives as Partial<DirectiveMap>, nodes);
+    if (isset(data) || isset(directives.default)) {
+      return exec(data);
+    }
   };
 }
 
 function execConst(ex: Exec) {
-  const { fieldName, root, args, context, info, data } = ex;
   return function exConst(data: ExecData) {
-    const constValue = isConst(info);
+    const constValue = isConst(ex);
     if (isset(constValue)) {
       return constValue;
     }
@@ -130,14 +123,15 @@ function execConst(ex: Exec) {
 
 export function exQuery(data: ExecData) {
   return applyEx(function exec(ex: Exec) {
-    const exConst = execConst(ex);
+    const _ex = { ...ex, data };
+    const exConst = execConst(_ex);
     const constValue = exConst(data);
     if (isset(constValue)) {
       return constValue;
     }
-    const exPath = execPath(ex);
-    const exFilter = execFilter(ex);
-    const exDirectives = execDirectives(ex);
+    const exPath = execPath(_ex);
+    const exFilter = execFilter(_ex);
+    const exDirectives = execDirectives(_ex);
     return exDirectives(exFilter(exPath(data)));
   });
 }
