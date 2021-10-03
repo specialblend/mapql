@@ -2,15 +2,13 @@ import { JsonSelector, JsonChild } from "./contract";
 import { equals, keys } from "rambda";
 import { islist, isrecord, isset } from "./util";
 
-export const MATCH_ANY = Symbol("MATCH_ANY");
-export const MATCH_NONE = Symbol("MATCH_NONE");
-
-export function matches(match: JsonSelector, data: JsonChild): boolean {
-  if (match === MATCH_NONE) {
-    return false;
-  }
-  if (match === MATCH_ANY) {
-    return true;
+export function matches(
+  match: JsonSelector,
+  data: JsonChild,
+  defaultTo = true
+): boolean {
+  if (!isset(match)) {
+    return defaultTo;
   }
   if (isrecord(match)) {
     if (isrecord(data)) {
@@ -30,16 +28,19 @@ export function matches(match: JsonSelector, data: JsonChild): boolean {
 }
 
 export function filter(
-  match: JsonSelector = MATCH_ANY,
-  nomatch: JsonSelector = MATCH_NONE,
+  match: JsonSelector = undefined,
+  nomatch: JsonSelector = undefined,
   parent: JsonChild,
   child = parent
 ): any {
+  if (!isset(match) && !isset(nomatch)) {
+    return child;
+  }
   if (islist(parent)) {
     return parent.filter((child) => filter(match, nomatch, child));
   }
   if (matches(match, parent)) {
-    if (!matches(nomatch, parent)) {
+    if (!matches(nomatch, parent, false)) {
       return child;
     }
   }

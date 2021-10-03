@@ -1,5 +1,4 @@
 import { ExecInfo } from "graphql-anywhere";
-import { MATCH_ANY, MATCH_NONE } from "./filter";
 import { DIRECTIVES } from "./transform";
 
 export type Maybe<T> = T | undefined;
@@ -9,11 +8,7 @@ export type JsonChild = string | number | boolean | null | JsonParent;
 export type JsonRecord = { [k: string]: JsonChild };
 export type JsonList = JsonChild[];
 
-export type JsonSelector =
-  | JsonChild
-  | undefined
-  | typeof MATCH_ANY
-  | typeof MATCH_NONE;
+export type JsonSelector = JsonChild | undefined;
 
 export type PathSelector = string | "@";
 
