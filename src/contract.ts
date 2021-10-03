@@ -2,10 +2,10 @@ import { ExecInfo } from "graphql-anywhere";
 import { MATCH_ANY, MATCH_NONE } from "./filter";
 import { DIRECTIVES } from "./transform";
 
-export type JsonChild = string | number | boolean | null | Json | Json[];
+export type JsonParent = JsonRecord | JsonList;
+export type JsonChild = string | number | boolean | null | JsonParent;
 export type JsonRecord = { [k: string]: JsonChild };
 export type JsonList = JsonChild[];
-export type Json = JsonRecord | JsonList;
 
 export type JsonSelector =
   | JsonChild
@@ -26,7 +26,7 @@ export interface ExecArgs {
   filter?: Filter;
 }
 export type ExecCtx = any;
-export type ExecData = JsonRecord;
+export type ExecSource = JsonRecord;
 export type ExecParent = any;
 export type ExecChild = JsonChild;
 
@@ -36,7 +36,7 @@ export type Exec = {
   args: ExecArgs;
   context: ExecCtx;
   info: ExecInfo;
-  data?: ExecData;
+  data?: ExecSource;
   parent?: ExecParent;
   child?: ExecChild;
 };

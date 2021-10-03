@@ -3,7 +3,7 @@ import { ExecInfo } from "graphql-anywhere";
 import {
   DirectiveMap,
   Exec,
-  ExecData,
+  ExecSource,
   JsonChild,
   JsonRecord,
 } from "./contract";
@@ -70,24 +70,24 @@ function applyEx(fn: (ex: Exec) => any) {
 
 function execPath(ex: Exec) {
   const { fieldName, root, args, info } = ex;
-  return function exPath(data: ExecData) {
+  return function exPath(source: ExecSource) {
     if (shouldExPath(ex)) {
       const { from: pathSelector } = args;
       const pathName = isset(pathSelector) ? pathSelector : fieldName;
-      return path(pathName, data, root);
+      return path(pathName, source, root);
     }
     return root;
   };
 }
 
 function execFilter(ex: Exec) {
-  const { root, args, data } = ex;
-  return function exFilter(child: JsonChild) {
+  const { root, args } = ex;
+  return function exFilter(source: ExecSource, child: JsonChild) {
     const { filter: query = { match: undefined, nomatch: undefined } } = args;
     if (isset(query.match) || isset(query.nomatch)) {
       const { from, match, nomatch } = query;
       if (isset(from)) {
-        const target = path(from, data as JsonRecord, root as JsonRecord);
+        const target = path(from, source, root);
         return filter(match, nomatch, target, child);
       }
       return filter(match, nomatch, child);
@@ -96,7 +96,7 @@ function execFilter(ex: Exec) {
   };
 }
 
-function execDirectives(ex: Exec) {
+function execTransform(ex: Exec) {
   const {
     info: {
       // isLeaf,
@@ -113,7 +113,7 @@ function execDirectives(ex: Exec) {
 }
 
 function execConst(ex: Exec) {
-  return function exConst(data: ExecData) {
+  return function exConst(data: ExecSource) {
     const constValue = isConst(ex);
     if (isset(constValue)) {
       return constValue;
@@ -121,17 +121,16 @@ function execConst(ex: Exec) {
   };
 }
 
-export function exQuery(data: ExecData) {
+export function exQuery(source: ExecSource) {
   return applyEx(function exec(ex: Exec) {
-    const _ex = { ...ex, data };
-    const exConst = execConst(_ex);
-    const constValue = exConst(data);
+    const constValue = execConst(ex)(source);
     if (isset(constValue)) {
       return constValue;
     }
-    const exPath = execPath(_ex);
-    const exFilter = execFilter(_ex);
-    const exDirectives = execDirectives(_ex);
-    return exDirectives(exFilter(exPath(data)));
+    const selected = execPath(ex)(source);
+    const filtered = execFilter(ex)(source, selected);
+    const transformed = execTransform(ex)(filtered);
+    const [result] = [transformed];
+    return result;
   });
 }

@@ -1,21 +1,23 @@
-import { JsonRecord, PathSelector } from "./contract";
+import { JsonParent, JsonRecord, PathSelector } from "./contract";
 import jp from "jsonpath";
 
-export function path(match: PathSelector, data: JsonRecord, parent = data) {
-  if (match === "@") {
-    const [source] = jp.query(parent, "$");
-    if (typeof source === "object" || source !== null) {
-      return source;
-    }
+function jsonpath(selector: string, data: JsonParent) {
+  const [child] = jp.query(data, selector);
+  if (typeof child === "object" || child !== null) {
+    return child;
   }
-  if (match[0] === "$") {
-    const [source] = jp.query(data, match);
-    if (typeof source === "object" || source !== null) {
-      return source;
-    }
+}
+
+export function path(
+  selector: PathSelector,
+  source: JsonRecord,
+  parent: JsonParent = source
+) {
+  if (selector === "@") {
+    return jsonpath("$", parent);
   }
-  const [source] = jp.query(parent, match);
-  if (typeof source === "object" || source !== null) {
-    return source;
+  if (selector[0] === "$") {
+    return jsonpath(selector, source);
   }
+  return jsonpath(selector, parent);
 }

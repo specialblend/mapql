@@ -4,6 +4,5 @@ import graphql from "graphql-anywhere";
 import { exQuery } from "./ex";
 
 export function map(query: DocumentNode, data: JsonRecord) {
-  const exec = exQuery(data);
-  return graphql(exec, query, data);
+  return graphql(exQuery(data), query, data);
 }
