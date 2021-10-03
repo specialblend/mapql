@@ -19,6 +19,7 @@ describe("matches", () => {
       charlie: "#charlie",
     },
   };
+
   test("it returns true when data obj contains filter obj", () => {
     const data = {
       ...foo,
@@ -26,6 +27,30 @@ describe("matches", () => {
     };
     expect(matches(foo, data)).toBe(true);
     expect(matches({}, data)).toBe(true);
+  });
+  test("it returns true when data obj contains selector obj", () => {
+    const faz = {
+      alpha: {
+        foo: "bar",
+        bravo: {
+          baz: "faz",
+          charlie: {
+            bar: "foo",
+            // foo: "baz",
+          },
+        },
+      },
+    };
+    const selector = {
+      alpha: {
+        bravo: {
+          charlie: {
+            bar: "foo",
+          },
+        },
+      },
+    };
+    expect(matches(selector, faz)).toBe(true);
   });
   test("it returns true when data obj is filter obj", () => {
     const data = {
