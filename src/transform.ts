@@ -1,5 +1,4 @@
 import { DirectiveNode } from "graphql";
-import { ExecInfo } from "graphql-anywhere";
 import {
   defaultTo,
   has,
@@ -9,17 +8,14 @@ import {
   last,
   not,
   of,
-  prop,
   path,
   pipe,
+  prop,
   tail,
 } from "rambda";
-import { isset } from "./util";
+import { DirectiveId, DirectiveMap } from "./contract";
 
-type DirectiveMap = typeof DIRECTIVES;
-type DirectiveId = keyof DirectiveMap;
-
-const DIRECTIVES: Record<string, CallableFunction> = {
+export const DIRECTIVES: Record<string, CallableFunction> = {
   parseInt: () => (x: string) => parseInt(x),
   parseFloat: () => (x: string) => parseFloat(x),
   String: () => (x: any) => String(x),
@@ -79,42 +75,21 @@ function initDirectives(
   return ids.map((id) => DIRECTIVES[id](info[id]));
 }
 
-export function parseDirectiveIds(
-  nodes: readonly DirectiveNode[]
-): DirectiveId[] {
+export function mapDxIds(nodes: readonly DirectiveNode[]): DirectiveId[] {
   return nodes
     .map((node) => node.name.value)
     .filter((id) => has(id, DIRECTIVES)) as DirectiveId[];
 }
 
-function pipeDirectives(
+export function pipeDx(
   info: Partial<DirectiveMap>,
   nodes: readonly DirectiveNode[]
 ) {
-  const directiveIds = parseDirectiveIds(nodes);
+  const directiveIds = mapDxIds(nodes);
   const handlers = initDirectives(info, directiveIds);
   if (handlers.length) {
     // @ts-ignore
     return pipe(...handlers);
   }
   return identity;
-}
-
-export function executesDirectives(info: ExecInfo) {
-  const {
-    isLeaf,
-    directives,
-    field: { directives: nodes = [] },
-  } = info;
-  if (isLeaf || true) {
-    return function execDirective(data: any) {
-      const exec = pipeDirectives(directives as Partial<DirectiveMap>, nodes);
-      if (isset(data) || isset(directives.default)) {
-        return exec(data);
-      }
-    };
-  }
-  return function execNoDirective(result: any) {
-    return result;
-  };
 }

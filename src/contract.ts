@@ -1,34 +1,43 @@
+import { ExecInfo } from "graphql-anywhere";
 import { MATCH_ANY, MATCH_NONE } from "./filter";
+import { DIRECTIVES } from "./transform";
 
-export type JsonValue = string | number | boolean | null | Json | Json[];
-
-export type JsonRecord = {
-  [k: string]: string | number | boolean | null | Json;
-};
-
-export type PathSelector = string | "@";
+export type JsonChild = string | number | boolean | null | Json | Json[];
+export type JsonRecord = { [k: string]: JsonChild };
+export type JsonList = JsonChild[];
+export type Json = JsonRecord | JsonList;
 
 export type JsonSelector =
-  | string
-  | number
-  | boolean
-  | null
-  | Json
+  | JsonChild
   | undefined
   | typeof MATCH_ANY
   | typeof MATCH_NONE;
 
-export type Json = JsonRecord | JsonList;
+export type PathSelector = string | "@";
 
-export type JsonList = JsonValue[];
-
-export interface FilterQuery {
+export interface Filter {
   from?: PathSelector;
   match?: JsonSelector;
   nomatch?: JsonSelector;
 }
-
-export interface MapArgs {
+export type ExecRoot = any;
+export interface ExecArgs {
   from?: PathSelector;
-  filter?: FilterQuery;
+  filter?: Filter;
 }
+export type ExecCtx = any;
+export type ExecData = JsonRecord;
+export type ExecParent = any;
+export type ExecChild = JsonChild;
+export type Exec = [
+  string,
+  ExecRoot,
+  ExecArgs,
+  ExecCtx,
+  ExecInfo,
+  ExecData?,
+  ExecParent?,
+  ExecChild?
+];
+export type DirectiveMap = typeof DIRECTIVES;
+export type DirectiveId = keyof DirectiveMap;
