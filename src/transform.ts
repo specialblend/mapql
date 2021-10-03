@@ -1,7 +1,7 @@
 import { DirectiveNode } from "graphql";
+import { DirectiveId, DirectiveMap, Exec, JsonRecord } from "./contract";
 import {
   defaultTo,
-  flip,
   has,
   head,
   identity,
@@ -14,7 +14,6 @@ import {
   prop,
   tail,
 } from "rambda";
-import { DirectiveId, DirectiveMap, Exec } from "./contract";
 
 export const DIRECTIVES: Record<string, CallableFunction> = {
   parseInt: () => (x: string) => parseInt(x),
@@ -70,7 +69,7 @@ function slice(args: any) {
 }
 
 function initDirectives(
-  info: Partial<DirectiveMap>,
+  info: Record<DirectiveId, JsonRecord>,
   ids: DirectiveId[]
 ): CallableFunction[] {
   return ids.map((id) => DIRECTIVES[id](info[id]));
@@ -90,7 +89,7 @@ export function pipeDx(ex: Exec) {
     },
   } = ex;
   const directiveIds = mapDxIds(nodes);
-  const handlers = initDirectives(info as Partial<DirectiveMap>, directiveIds);
+  const handlers = initDirectives(info, directiveIds);
   if (handlers.length) {
     // @ts-ignore
     return pipe(...handlers);
