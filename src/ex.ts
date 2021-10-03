@@ -95,14 +95,18 @@ function execTransform(child: Maybe<JsonChild>) {
   return function (ex: Exec): any {
     const {
       info: {
-        // isLeaf,
-        directives,
-        field: { directives: nodes = [] },
+        directives: { default: defaultTag },
       },
     } = ex;
-    const exec = pipeDx(directives as Partial<DirectiveMap>, nodes);
-    if (isset(child) || isset(directives.default)) {
+    const exec = pipeDx(ex);
+    if (isset(child)) {
       return exec(child);
+    }
+    if (isset(defaultTag)) {
+      const { to: defaultValue } = defaultTag;
+      if (isset(defaultValue)) {
+        return defaultValue;
+      }
     }
   };
 }
