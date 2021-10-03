@@ -1,4 +1,4 @@
-import { FilterQuery, Json, JsonRecord, JsonValue, MapArgs } from "./contract";
+import { FilterQuery, JsonRecord, JsonValue, MapArgs } from "./contract";
 import { DocumentNode } from "graphql";
 import graphql, { ExecInfo } from "graphql-anywhere";
 import { fixInfo, isset, orEmpty } from "./util";
@@ -59,28 +59,48 @@ function execFilter(
   }
   return executor(match, child);
 }
-
-function execFilters(
-  filterQuery: FilterQuery,
-  rejectQuery: FilterQuery,
+function executesFilters(
+  args: Partial<MapArgs>,
   data: JsonValue,
-  parent: JsonValue,
-  child: JsonValue
+  parent: JsonValue
 ) {
-  if (isset(filterQuery.match) || isset(rejectQuery.match)) {
-    const result = execFilter(
-      filter,
-      filterQuery,
-      data,
-      parent,
-      child
-    ) as JsonValue;
-    if (result) {
-      return execFilter(reject, rejectQuery, child, parent, result);
+  return function execFilters(child: JsonValue) {
+    const {
+      filter: filterQuery = { match: undefined },
+      reject: rejectQuery = { match: undefined },
+    } = args;
+    if (isset(filterQuery.match) || isset(rejectQuery.match)) {
+      const result = execFilter(
+        filter,
+        filterQuery,
+        data,
+        parent,
+        child
+      ) as JsonValue;
+      if (result) {
+        return execFilter(reject, rejectQuery, child, parent, result);
+      }
+      return result;
     }
-    return result;
-  }
-  return child;
+    return child;
+  };
+}
+
+function executesPath(
+  fieldName: string,
+  args: MapArgs,
+  context: any,
+  info: ExecInfo,
+  data: JsonRecord
+) {
+  return function execPath(parent = data) {
+    if (shouldExecPath(args, info)) {
+      const { from: pathSelector } = args;
+      const pathName = isset(pathSelector) ? pathSelector : fieldName;
+      return path(pathName, data, parent);
+    }
+    return parent;
+  };
 }
 
 function executes(data: JsonRecord) {
@@ -95,21 +115,10 @@ function executes(data: JsonRecord) {
     if (isset(constValue)) {
       return constValue;
     }
+    const execPath = executesPath(fieldName, args, context, info, data);
+    const execFilters = executesFilters(args, data, parent);
     const execDirectives = executesDirectives(info);
-    const {
-      from: pathSelector,
-      filter: filterQuery = { match: undefined },
-      reject: rejectQuery = { match: undefined },
-    } = args;
-
-    if (shouldExecPath(args, info)) {
-      const pathName = isset(pathSelector) ? pathSelector : fieldName;
-      const child = path(pathName, data, parent);
-      const result = execFilters(filterQuery, rejectQuery, data, parent, child);
-      return execDirectives(result);
-    }
-    const result = execFilters(filterQuery, rejectQuery, data, parent, parent);
-    return execDirectives(result);
+    return execDirectives(execFilters(execPath(parent)));
   };
 }
 
@@ -117,7 +126,13 @@ export function map(query: DocumentNode, data: JsonRecord) {
   const exec = executes(data);
   return graphql(
     (fieldName, root, args, context, info) =>
-      exec(fieldName, root, orEmpty(args), context, fixInfo(info)),
+      exec(
+        fieldName,
+        orEmpty(root),
+        orEmpty(args),
+        orEmpty(context),
+        fixInfo(info)
+      ),
     query,
     data,
     data
