@@ -6,6 +6,7 @@ import {
   ExecSource,
   JsonChild,
   JsonRecord,
+  Maybe,
 } from "./contract";
 
 import { path } from "./path";
@@ -68,9 +69,9 @@ function applyEx(fn: (ex: Exec) => any) {
   };
 }
 
-function execPath(ex: Exec) {
-  const { fieldName, root, args, info } = ex;
-  return function exPath(source: ExecSource) {
+function execPath(source: ExecSource) {
+  return function (ex: Exec): Maybe<JsonChild> {
+    const { fieldName, root, args, info } = ex;
     if (shouldExPath(ex)) {
       const { from: pathSelector } = args;
       const pathName = isset(pathSelector) ? pathSelector : fieldName;
@@ -79,10 +80,9 @@ function execPath(ex: Exec) {
     return root;
   };
 }
-
-function execFilter(ex: Exec) {
-  const { root, args } = ex;
-  return function exFilter(source: ExecSource, child: JsonChild) {
+function execFilter(source: ExecSource, child: Maybe<JsonChild>) {
+  return function (ex: Exec): Maybe<JsonChild> {
+    const { root, args } = ex;
     const { filter: query = { match: undefined, nomatch: undefined } } = args;
     if (isset(query.match) || isset(query.nomatch)) {
       const { from, match, nomatch } = query;
@@ -93,30 +93,31 @@ function execFilter(ex: Exec) {
         }
         return;
       }
-      return filter(match, nomatch, child);
+      if (isset(child)) {
+        return filter(match, nomatch, child);
+      }
     }
     return child;
   };
 }
-
-function execTransform(ex: Exec) {
-  const {
-    info: {
-      // isLeaf,
-      directives,
-      field: { directives: nodes = [] },
-    },
-  } = ex;
-  return function (data: any) {
+function execTransform(child: Maybe<JsonChild>) {
+  return function (ex: Exec): any {
+    const {
+      info: {
+        // isLeaf,
+        directives,
+        field: { directives: nodes = [] },
+      },
+    } = ex;
     const exec = pipeDx(directives as Partial<DirectiveMap>, nodes);
-    if (isset(data) || isset(directives.default)) {
-      return exec(data);
+    if (isset(child) || isset(directives.default)) {
+      return exec(child);
     }
   };
 }
 
-function execConst(ex: Exec) {
-  return function exConst(data: ExecSource) {
+function execConst(source: ExecSource) {
+  return function execConst(ex: Exec) {
     const constValue = isConst(ex);
     if (isset(constValue)) {
       return constValue;
@@ -125,14 +126,14 @@ function execConst(ex: Exec) {
 }
 
 export function exQuery(source: ExecSource) {
-  return applyEx(function exec(ex: Exec) {
-    const constValue = execConst(ex)(source);
+  return applyEx(function exec(ex: Exec): any {
+    const constValue = execConst(source)(ex);
     if (isset(constValue)) {
       return constValue;
     }
-    const selected = execPath(ex)(source);
-    const filtered = execFilter(ex)(source, selected);
-    const transformed = execTransform(ex)(filtered);
+    const selected = execPath(source)(ex);
+    const filtered = execFilter(source, selected)(ex);
+    const transformed = execTransform(filtered)(ex);
     const [result] = [transformed];
     return result;
   });
