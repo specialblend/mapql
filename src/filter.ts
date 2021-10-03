@@ -31,32 +31,40 @@ export function matches(match: JsonSelector, data: JsonValue): boolean {
 
 export function filter(
   match: JsonSelector = MATCH_ANY,
+  nomatch: JsonSelector = MATCH_NONE,
   parent: JsonValue,
   child = parent
-): JsonValue | undefined {
+): any {
   if (islist(parent)) {
-    return parent.filter((child) => {
-      return filter(match, child);
-    });
+    return parent.filter((child) =>
+      filter(
+        //
+        match,
+        nomatch,
+        child
+      )
+    );
   }
   if (matches(match, parent)) {
-    return child;
-  }
-}
-
-export function reject(
-  match: JsonSelector = MATCH_NONE,
-  parent: JsonValue,
-  child = parent
-): JsonValue | undefined {
-  if (isset(parent)) {
-    if (islist(parent)) {
-      return parent.filter((child) => {
-        return !filter(match, child);
-      });
-    }
-    if (!matches(match, parent)) {
+    if (!matches(nomatch, parent)) {
       return child;
     }
   }
 }
+
+// export function reject(
+//   match: JsonSelector = MATCH_NONE,
+//   parent: JsonValue,
+//   child = parent
+// ): JsonValue | undefined {
+//   if (isset(parent)) {
+//     if (islist(parent)) {
+//       return parent.filter((child) => {
+//         return !filter(match, child);
+//       });
+//     }
+//     if (!matches(match, parent)) {
+//       return child;
+//     }
+//   }
+// }

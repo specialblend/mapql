@@ -24,11 +24,11 @@ export type JsonList = JsonValue[];
 
 export interface FilterQuery {
   from?: PathSelector;
-  match: JsonSelector;
+  match?: JsonSelector;
+  nomatch?: JsonSelector;
 }
 
 export interface MapArgs {
   from?: PathSelector;
   filter?: FilterQuery;
-  reject?: FilterQuery;
 }

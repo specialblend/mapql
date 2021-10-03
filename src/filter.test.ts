@@ -107,7 +107,7 @@ describe("filter", () => {
       ...match,
       charlie: "#charlie",
     };
-    const result = filter(match, root);
+    const result = filter(match, undefined, root);
     expect(result).toBe(root);
   });
   test("it returns nothing when match does not match root", () => {
@@ -120,7 +120,7 @@ describe("filter", () => {
       bravo: "#notbravo",
       charlie: "#charlie",
     };
-    const result = filter(match, root);
+    const result = filter(match, undefined, root);
     expect(result).toBeUndefined();
   });
   test("it returns array values matching match", () => {
@@ -160,7 +160,7 @@ describe("filter", () => {
       },
     ];
     const root = [...matchesSelector, ...notMatchesSelector];
-    const result = filter(match, root);
+    const result = filter(match, undefined, root);
     expect(result).toEqual(matchesSelector);
   });
 });

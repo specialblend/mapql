@@ -2,7 +2,7 @@ import { FilterQuery, JsonRecord, JsonValue, MapArgs } from "./contract";
 import { DocumentNode } from "graphql";
 import graphql, { ExecInfo } from "graphql-anywhere";
 import { fixInfo, isset, orEmpty } from "./util";
-import { filter, reject } from "./filter";
+import { filter } from "./filter";
 import { path } from "./path";
 import { executesDirectives, parseDirectiveIds } from "./transform";
 
@@ -45,42 +45,20 @@ function shouldExecPath(args: any, info: ExecInfo) {
   );
 }
 
-function execFilter(
-  executor: typeof filter | typeof reject,
-  query: FilterQuery,
-  data: JsonValue,
-  parent = data,
-  child = parent
-) {
-  const { from, match } = query;
-  if (isset(from)) {
-    const target = path(from, data as JsonRecord, parent as JsonRecord);
-    return executor(match, target, child);
-  }
-  return executor(match, child);
-}
 function executesFilters(
   args: Partial<MapArgs>,
   data: JsonValue,
   parent: JsonValue
 ) {
   return function execFilters(child: JsonValue) {
-    const {
-      filter: filterQuery = { match: undefined },
-      reject: rejectQuery = { match: undefined },
-    } = args;
-    if (isset(filterQuery.match) || isset(rejectQuery.match)) {
-      const result = execFilter(
-        filter,
-        filterQuery,
-        data,
-        parent,
-        child
-      ) as JsonValue;
-      if (result) {
-        return execFilter(reject, rejectQuery, child, parent, result);
+    const { filter: query = { match: undefined, nomatch: undefined } } = args;
+    if (isset(query.match) || isset(query.nomatch)) {
+      const { from, match, nomatch } = query;
+      if (isset(from)) {
+        const target = path(from, data as JsonRecord, parent as JsonRecord);
+        return filter(match, nomatch, target, child);
       }
-      return result;
+      return filter(match, nomatch, child);
     }
     return child;
   };
