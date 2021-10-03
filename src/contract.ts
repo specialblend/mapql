@@ -20,8 +20,13 @@ export type Json = JsonRecord | JsonList;
 
 export type JsonList = JsonValue[];
 
+export interface FilterQuery {
+  from?: string;
+  selector: JsonSelector;
+}
+
 export interface MapArgs {
   from?: string;
-  filter?: JsonSelector;
-  reject?: JsonSelector;
+  filter?: FilterQuery;
+  reject?: FilterQuery;
 }

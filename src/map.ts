@@ -1,4 +1,4 @@
-import { Json, JsonRecord, JsonSelector, JsonValue, MapArgs } from "./contract";
+import { FilterQuery, Json, JsonRecord, JsonValue, MapArgs } from "./contract";
 import { DocumentNode } from "graphql";
 import graphql, { ExecInfo } from "graphql-anywhere";
 import { fixInfo, isset, orEmpty } from "./util";
@@ -44,15 +44,34 @@ function shouldMap(args: any, info: ExecInfo) {
   );
 }
 
+function executesFilter(executor: typeof filter | typeof reject) {
+  return function execFilter(
+    query: FilterQuery,
+    parent: JsonValue,
+    child: JsonValue
+  ) {
+    const { from, selector } = query;
+    if (from) {
+      const target = path(from, parent as JsonRecord);
+      return filter(selector, target, child);
+    }
+    return filter(selector, child);
+  };
+}
+
 function execFilters(
-  filterSelector: JsonSelector,
-  rejectSelector: JsonSelector,
-  data: JsonValue
+  filterQuery: FilterQuery,
+  rejectQuery: FilterQuery,
+  parent: JsonValue,
+  child: JsonValue
 ) {
-  const result = filter(filterSelector, data);
-  if (result) {
-    return reject(rejectSelector, result);
-  }
+  const execFilter = executesFilter(filter);
+  const execReject = executesFilter(reject);
+  return execReject(
+    rejectQuery,
+    parent,
+    execFilter(filterQuery, parent, child) as JsonValue
+  );
 }
 
 function exec(
@@ -70,13 +89,13 @@ function exec(
     const execDirectives = executesDirectives(info);
     const {
       from: pathSelector,
-      filter: filterSelector,
-      reject: rejectSelector,
+      filter: filterQuery = { selector: undefined },
+      reject: rejectQuery = { selector: undefined },
     } = args;
     const pathName = pathSelector || fieldName;
     const child = path(pathName, parent);
-    if (isset(filterSelector) || isset(rejectSelector)) {
-      return execFilters(filterSelector, rejectSelector, child);
+    if (isset(filterQuery) || isset(rejectQuery)) {
+      return execFilters(filterQuery, rejectQuery, parent, child);
     }
     return execDirectives(child);
   }
