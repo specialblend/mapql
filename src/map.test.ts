@@ -366,10 +366,10 @@ describe("map", () => {
         ],
       });
     });
-    test("nomatch works as expected", () => {
+    test("noMatch works as expected", () => {
       const query = gql`
         query RejectExample {
-          exObjArr(filter: { nomatch: { exTag: "foo" } }) {
+          exObjArr(filter: { noMatch: { exTag: "foo" } }) {
             exNestedString
           }
         }
@@ -383,11 +383,11 @@ describe("map", () => {
         ],
       });
     });
-    test("match and nomatch work together as expected", () => {
+    test("match and noMatch work together as expected", () => {
       const query = gql`
         query MatchNoMatchExample {
           exObjArr(
-            filter: { match: { exTag: "foo" }, nomatch: { exTag2: "bar" } }
+            filter: { match: { exTag: "foo" }, noMatch: { exTag2: "bar" } }
           ) {
             exNestedString
           }
@@ -402,11 +402,11 @@ describe("map", () => {
         ],
       });
     });
-    test("match and nomatch can negate each other as expected", () => {
+    test("match and noMatch can negate each other as expected", () => {
       const query = gql`
         query MatchNoMatchExample {
           exObjArr(
-            filter: { match: { exTag: "foo" }, nomatch: { exTag: "foo" } }
+            filter: { match: { exTag: "foo" }, noMatch: { exTag: "foo" } }
           ) {
             exNestedString
           }

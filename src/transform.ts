@@ -1,5 +1,5 @@
 import { DirectiveNode } from "graphql";
-import { ExecInfo } from "graphql-anywhere";
+import { DirectiveId, Exec, JsonRecord } from "./contract";
 import {
   defaultTo,
   has,
@@ -9,17 +9,13 @@ import {
   last,
   not,
   of,
-  prop,
   path,
   pipe,
+  prop,
   tail,
 } from "rambda";
-import { isset } from "./util";
 
-type DirectiveMap = typeof DIRECTIVES;
-type DirectiveId = keyof DirectiveMap;
-
-const DIRECTIVES: Record<string, CallableFunction> = {
+export const DIRECTIVES: Record<string, CallableFunction> = {
   parseInt: () => (x: string) => parseInt(x),
   parseFloat: () => (x: string) => parseFloat(x),
   String: () => (x: any) => String(x),
@@ -38,8 +34,8 @@ const DIRECTIVES: Record<string, CallableFunction> = {
   init: (args?: any) => init, // TODO unit test
   tail: (args?: any) => tail, // TODO unit test
   last: (args?: any) => last, // TODO unit test
-  prop: (args?: any) => prop(args._),
-  path: (args?: any) => path(args._),
+  prop: (args?: any) => prop(args._), // TODO unit test
+  path: (args?: any) => path(args._), // TODO unit test
 };
 
 function withx(fn: CallableFunction) {
@@ -73,48 +69,30 @@ function slice(args: any) {
 }
 
 function initDirectives(
-  info: Partial<DirectiveMap>,
+  info: Record<DirectiveId, JsonRecord>,
   ids: DirectiveId[]
 ): CallableFunction[] {
   return ids.map((id) => DIRECTIVES[id](info[id]));
 }
 
-export function parseDirectiveIds(
-  nodes: readonly DirectiveNode[]
-): DirectiveId[] {
+export function mapDxIds(nodes: readonly DirectiveNode[]): DirectiveId[] {
   return nodes
     .map((node) => node.name.value)
     .filter((id) => has(id, DIRECTIVES)) as DirectiveId[];
 }
 
-function pipeDirectives(
-  info: Partial<DirectiveMap>,
-  nodes: readonly DirectiveNode[]
-) {
-  const directiveIds = parseDirectiveIds(nodes);
+export function pipeDx(ex: Exec) {
+  const {
+    info: {
+      directives: info,
+      field: { directives: nodes = [] },
+    },
+  } = ex;
+  const directiveIds = mapDxIds(nodes);
   const handlers = initDirectives(info, directiveIds);
   if (handlers.length) {
     // @ts-ignore
     return pipe(...handlers);
   }
   return identity;
-}
-
-export function executesDirectives(info: ExecInfo) {
-  const {
-    isLeaf,
-    directives,
-    field: { directives: nodes = [] },
-  } = info;
-  if (isLeaf || true) {
-    return function execDirective(data: any) {
-      const exec = pipeDirectives(directives as Partial<DirectiveMap>, nodes);
-      if (isset(data) || isset(directives.default)) {
-        return exec(data);
-      }
-    };
-  }
-  return function execNoDirective(result: any) {
-    return result;
-  };
 }

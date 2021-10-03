@@ -1,70 +1,44 @@
-import { JsonSelector, JsonValue } from "./contract";
-import { equals, keys } from "rambda";
+import { JsonSelector, JsonChild } from "./contract";
+import { all, equals, keys } from "rambda";
 import { islist, isrecord, isset } from "./util";
 
-export const MATCH_ANY = Symbol("MATCH_ANY");
-export const MATCH_NONE = Symbol("MATCH_NONE");
-
-export function matches(match: JsonSelector, data: JsonValue): boolean {
-  if (match === MATCH_NONE) {
-    return false;
-  }
-  if (match === MATCH_ANY) {
-    return true;
-  }
-  if (isrecord(match)) {
-    if (isrecord(data)) {
-      const childKeys = keys(match);
-      for (const k of childKeys) {
-        const childData = match[k];
-        const parentData = data[k];
-        if (!matches(childData, parentData)) {
-          return false;
-        }
+export function matches(
+  selector: JsonSelector,
+  data: JsonChild,
+  defaultTo = true
+): boolean {
+  if (isset(selector)) {
+    if (isrecord(selector)) {
+      if (isrecord(data)) {
+        const childKeys = keys(selector);
+        return all((k: string | number) => {
+          const childData = selector[k];
+          const parentData = data[k];
+          return matches(childData, parentData);
+        })(childKeys);
       }
-      return true;
+      return false;
     }
-    return false;
+    return equals(selector, data);
   }
-  return equals(match as JsonValue, data as JsonValue);
+  return defaultTo;
 }
 
 export function filter(
-  match: JsonSelector = MATCH_ANY,
-  nomatch: JsonSelector = MATCH_NONE,
-  parent: JsonValue,
+  match: JsonSelector = undefined,
+  noMatch: JsonSelector = undefined,
+  parent: JsonChild,
   child = parent
 ): any {
+  if (!isset(match) && !isset(noMatch)) {
+    return child;
+  }
   if (islist(parent)) {
-    return parent.filter((child) =>
-      filter(
-        //
-        match,
-        nomatch,
-        child
-      )
-    );
+    return parent.filter((child) => filter(match, noMatch, child));
   }
   if (matches(match, parent)) {
-    if (!matches(nomatch, parent)) {
+    if (!matches(noMatch, parent, false)) {
       return child;
     }
   }
 }
-
-// export function reject(
-//   match: JsonSelector = MATCH_NONE,
-//   parent: JsonValue,
-//   child = parent
-// ): JsonValue | undefined {
-//   if (isset(parent)) {
-//     if (islist(parent)) {
-//       return parent.filter((child) => {
-//         return !filter(match, child);
-//       });
-//     }
-//     if (!matches(match, parent)) {
-//       return child;
-//     }
-//   }
-// }
