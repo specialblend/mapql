@@ -36,7 +36,7 @@ describe("matches", () => {
           baz: "faz",
           charlie: {
             bar: "foo",
-            // foo: "baz",
+            foo: "baz",
           },
         },
       },
@@ -44,6 +44,7 @@ describe("matches", () => {
     const selector = {
       alpha: {
         bravo: {
+          baz: "faz",
           charlie: {
             bar: "foo",
           },
