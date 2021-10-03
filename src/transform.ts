@@ -106,7 +106,7 @@ export function executesDirectives(info: ExecInfo) {
     directives,
     field: { directives: nodes = [] },
   } = info;
-  if (isLeaf) {
+  if (isLeaf || true) {
     return function execDirective(data: any) {
       const exec = pipeDirectives(directives as Partial<DirectiveMap>, nodes);
       if (isset(data) || isset(directives.default)) {
