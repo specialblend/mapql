@@ -19,7 +19,7 @@ function isConst(info: ExecInfo): any {
   }
 }
 
-function shouldMap(args: any, info: ExecInfo) {
+function shouldExecPath(args: any, info: ExecInfo) {
   const {
     isLeaf,
     directives: { map: mapTag, nomap: noMapTag },
@@ -102,7 +102,7 @@ function executes(data: JsonRecord) {
       reject: rejectQuery = { selector: undefined },
     } = args;
 
-    if (shouldMap(args, info)) {
+    if (shouldExecPath(args, info)) {
       const pathName = isset(pathSelector) ? pathSelector : fieldName;
       const child = path(pathName, data, parent);
       const result = execFilters(filterQuery, rejectQuery, data, parent, child);
