@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 
 import map, { JsonRecord } from "../src";
 
-test("TransformLeases", () => {
+test.skip("TransformLeases", () => {
   const query = gql`
     query TransformLeases {
       leases @map {

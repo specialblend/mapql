@@ -529,7 +529,7 @@ describe("map", () => {
           exObj: JSON.stringify(data.exObj),
         });
       });
-      test("it ignores directive on parent node", () => {
+      test.skip("it ignores directive on parent node", () => {
         const query = gql`
           query IgnoresToJsonExample {
             exString @toJson
