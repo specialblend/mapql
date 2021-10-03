@@ -1,5 +1,5 @@
 import gql from "graphql-tag";
-import map, { Json } from "../src";
+import map, { JsonRecord } from "../src";
 
 test("GenerateArgoWorkflow", () => {
   const data = {
@@ -47,20 +47,20 @@ test("GenerateArgoWorkflow", () => {
               name
               valueFrom {
                 parameter(
-                  from: "$"
-                  filter: { selector: { sourceType: "input" } }
+                  from: "name"
+                  filter: { from: "@", selector: { sourceType: "input" } }
                 )
-                  @prop(_: "name")
+                  #                  @prop(_: "name")
                   @concat(before: "{{workflow.inputs.parameters.", after: "}}")
                 configMapKeyRef(
-                  from: "$"
+                  from: "@"
                   filter: { selector: { sourceType: "configmap" } }
                 ) {
                   name: sourceName
                   key: sourceKey
                 }
                 secretKeyRef(
-                  from: "$"
+                  from: "@"
                   filter: { selector: { sourceType: "secret" } }
                 ) {
                   name: sourceName
@@ -79,7 +79,7 @@ test("GenerateArgoWorkflow", () => {
       }
     }
   `;
-  const result = map(query, data as Json);
+  const result = map(query, data as JsonRecord);
   expect(result).toEqual(
     //
     {

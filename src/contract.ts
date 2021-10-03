@@ -6,6 +6,8 @@ export type JsonRecord = {
   [k: string]: string | number | boolean | null | Json;
 };
 
+export type PathSelector = string | "@";
+
 export type JsonSelector =
   | string
   | number
@@ -21,12 +23,12 @@ export type Json = JsonRecord | JsonList;
 export type JsonList = JsonValue[];
 
 export interface FilterQuery {
-  from?: string;
+  from?: PathSelector;
   selector: JsonSelector;
 }
 
 export interface MapArgs {
-  from?: string;
+  from?: PathSelector;
   filter?: FilterQuery;
   reject?: FilterQuery;
 }

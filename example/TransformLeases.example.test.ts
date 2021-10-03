@@ -1,7 +1,7 @@
 import exampleData from "./data.json";
 import gql from "graphql-tag";
 
-import map, { Json } from "../src";
+import map, { JsonRecord } from "../src";
 
 test("TransformLeases", () => {
   const query = gql`
@@ -20,7 +20,7 @@ test("TransformLeases", () => {
       reportMetaJson: reportMeta @toJson
     }
   `;
-  const result = map(query, exampleData as Json);
+  const result = map(query, exampleData as JsonRecord);
   expect(result).toEqual(
     //
     {

@@ -48,11 +48,12 @@ function executesFilter(executor: typeof filter | typeof reject) {
   return function execFilter(
     query: FilterQuery,
     parent: JsonValue,
-    child: JsonValue
+    child: JsonValue,
+    data = child
   ) {
     const { from, selector } = query;
-    if (from) {
-      const target = path(from, parent as JsonRecord);
+    if (isset(from)) {
+      const target = path(from, parent as JsonRecord, data as JsonRecord);
       return executor(selector, target, child);
     }
     return executor(selector, child);
@@ -63,51 +64,62 @@ function execFilters(
   filterQuery: FilterQuery,
   rejectQuery: FilterQuery,
   parent: JsonValue,
-  child: JsonValue
+  child: JsonValue,
+  data = child
 ) {
   const execFilter = executesFilter(filter);
   const execReject = executesFilter(reject);
-  const result = execFilter(filterQuery, parent, child) as JsonValue;
+  const result = execFilter(filterQuery, parent, child, data) as JsonValue;
   if (result) {
     return execReject(rejectQuery, parent, result);
   }
   return result;
 }
 
-function exec(
-  fieldName: string,
-  parent: JsonRecord,
-  args: MapArgs,
-  context: any,
-  info: ExecInfo
-) {
-  const constValue = isConst(info);
-  if (isset(constValue)) {
-    return constValue;
-  }
-  if (shouldMap(args, info)) {
-    const execDirectives = executesDirectives(info);
-    const {
-      from: pathSelector,
-      filter: filterQuery = { selector: undefined },
-      reject: rejectQuery = { selector: undefined },
-    } = args;
-    const pathName = pathSelector || fieldName;
-    const child = path(pathName, parent);
-    if (isset(filterQuery.selector) || isset(rejectQuery.selector)) {
-      const result = execFilters(filterQuery, rejectQuery, parent, child);
-      return execDirectives(result);
+function executes(data: JsonRecord) {
+  return function exec(
+    fieldName: string,
+    parent: JsonRecord,
+    args: MapArgs,
+    context: any,
+    info: ExecInfo
+  ) {
+    const constValue = isConst(info);
+    if (isset(constValue)) {
+      return constValue;
     }
-    return execDirectives(child);
-  }
-  return parent;
+    if (shouldMap(args, info)) {
+      const execDirectives = executesDirectives(info);
+      const {
+        from: pathSelector,
+        filter: filterQuery = { selector: undefined },
+        reject: rejectQuery = { selector: undefined },
+      } = args;
+      const pathName = isset(pathSelector) ? pathSelector : fieldName;
+      const child = path(pathName, parent, data);
+      if (isset(filterQuery.selector) || isset(rejectQuery.selector)) {
+        const result = execFilters(
+          filterQuery,
+          rejectQuery,
+          parent,
+          child,
+          data
+        );
+        return execDirectives(result);
+      }
+      return execDirectives(child);
+    }
+    return parent;
+  };
 }
 
-export function map(query: DocumentNode, data: Json) {
+export function map(query: DocumentNode, data: JsonRecord) {
+  const exec = executes(data);
   return graphql(
     (fieldName, root, args, context, info) =>
       exec(fieldName, root, orEmpty(args), context, fixInfo(info)),
     query,
+    data,
     data
   );
 }
