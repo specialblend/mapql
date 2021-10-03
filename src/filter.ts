@@ -1,5 +1,5 @@
-import { JsonRecord, JsonSelector, JsonValue } from "./contract";
-import { equals, intersection, keys, pick } from "rambda";
+import { JsonSelector, JsonValue } from "./contract";
+import { equals, keys } from "rambda";
 import { islist, isrecord, isset } from "./util";
 
 export const MATCH_ANY = Symbol("MATCH_ANY");

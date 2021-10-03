@@ -53,9 +53,9 @@ function executesFilter(executor: typeof filter | typeof reject) {
     const { from, selector } = query;
     if (from) {
       const target = path(from, parent as JsonRecord);
-      return filter(selector, target, child);
+      return executor(selector, target, child);
     }
-    return filter(selector, child);
+    return executor(selector, child);
   };
 }
 
@@ -67,11 +67,11 @@ function execFilters(
 ) {
   const execFilter = executesFilter(filter);
   const execReject = executesFilter(reject);
-  return execReject(
-    rejectQuery,
-    parent,
-    execFilter(filterQuery, parent, child) as JsonValue
-  );
+  const result = execFilter(filterQuery, parent, child) as JsonValue;
+  if (result) {
+    return execReject(rejectQuery, parent, result);
+  }
+  return result;
 }
 
 function exec(
@@ -94,8 +94,9 @@ function exec(
     } = args;
     const pathName = pathSelector || fieldName;
     const child = path(pathName, parent);
-    if (isset(filterQuery) || isset(rejectQuery)) {
-      return execFilters(filterQuery, rejectQuery, parent, child);
+    if (isset(filterQuery.selector) || isset(rejectQuery.selector)) {
+      const result = execFilters(filterQuery, rejectQuery, parent, child);
+      return execDirectives(result);
     }
     return execDirectives(child);
   }
