@@ -19,7 +19,7 @@ export function matches(
       }
       return false;
     }
-    return equals(selector as JsonChild, data as JsonChild);
+    return equals(selector, data);
   }
   return defaultTo;
 }
