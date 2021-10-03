@@ -109,6 +109,7 @@ query GetAddresses1 {
     reportInfo {
         date(from: "reportMeta.generated.date")
         manager(from: "reportMeta.generated.user.name")
+        exampleVersion @const(of: "v1.2.3.4")
     }
 }
 ```
@@ -175,9 +176,11 @@ query GetAddresses2 {
     reportInfo {
         date(from: "reportMeta.generated.date")
         manager(from: "reportMeta.generated.user.name")
+        exampleVersion @const(of: "v1.2.3.4")
     }
 }
 ```
+
 #### 💡 concepts
 
 - ✅ `foo @map` is short for `foo(from: "foo")`.
@@ -198,6 +201,7 @@ query GetAddresses3 {
     reportInfo(from: "reportMeta.generated") {
         date
         manager(from: "user.name")
+        exampleVersion @const(of: "v1.2.3.4")
     }
 }
 ```
