@@ -188,7 +188,7 @@ query GetAddresses2 {
 ⭕ let's go little bit shorter.
 
 ```graphql
-query GetAddresses3 {
+{
     leases @map {
         contractNumber: leaseId
         address @map {
@@ -208,6 +208,7 @@ query GetAddresses3 {
 
 #### 💡 concepts
 
+- ✅ `query` keyword and name are optional.
 - ✅ `foo: bar` is short for `foo(from: "bar")` when path is simple field name (not JSONPath).
 - ✅ `@map` directive is optional and implicit on leaf nodes.
 
