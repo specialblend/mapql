@@ -22,6 +22,35 @@ const data = {
       exObjNestedFloat: 0.1234,
       exObjNestedTrue: true,
       exObjNestedFalse: false,
+      exObjNestedArr: [
+        {
+          exNestedString: "This is an example obj nested string #1",
+          exNestedInt: 444,
+          exNestedFloat: -0.222,
+          exNestedTrue: true,
+          exNestedFalse: false,
+          exTag: "foo",
+          exTag2: "faz",
+        },
+        {
+          exNestedString: "This is an example obj nested string #2",
+          exNestedInt: 555,
+          exNestedFloat: -0.333,
+          exNestedTrue: true,
+          exNestedFalse: false,
+          exTag: "bar",
+          exTag2: "faz",
+        },
+        {
+          exNestedString: "This is an example obj nested string #3",
+          exNestedInt: 666,
+          exNestedFloat: -0.444,
+          exNestedTrue: true,
+          exNestedFalse: false,
+          exTag: "foo",
+          exTag2: "baz",
+        },
+      ],
     },
   },
   exObjFoo: {
@@ -365,6 +394,282 @@ describe("map", () => {
           },
         ],
       });
+    });
+    test("match works as expected with valid relative filter path", () => {
+      const query = gql`
+        query FilterExample {
+          exObjArr(
+            filter: {
+              from: "exObj"
+              match: { exNestedString: "This is an example nested string" }
+            }
+          ) {
+            exNestedString
+          }
+          exObj @map {
+            exNestedObj(filter: { from: "exNestedInt", match: 1234 }) {
+              exObjNestedArr(filter: { match: { exTag2: "faz" } }) {
+                exNestedString
+              }
+            }
+          }
+          exObjBar: exObj @map {
+            exNestedObj(filter: { from: "exNestedInt", match: -121212 }) {
+              exObjNestedString
+              exObjNestedArr(filter: { match: { exTag2: "faz" } }) {
+                exNestedString
+              }
+            }
+          }
+        }
+      `;
+      const result = map(query, data);
+      expect(result).toEqual(
+        //
+        {
+          exObj: {},
+          exObjBar: {
+            exNestedObj: {
+              exObjNestedString: data.exObj.exNestedObj.exObjNestedString,
+              exObjNestedArr: [
+                {
+                  exNestedString:
+                    data.exObj.exNestedObj.exObjNestedArr[0].exNestedString,
+                },
+                {
+                  exNestedString:
+                    data.exObj.exNestedObj.exObjNestedArr[1].exNestedString,
+                },
+              ],
+            },
+          },
+          exObjArr: [
+            {
+              exNestedString: data.exObjArr[0].exNestedString,
+            },
+            {
+              exNestedString: data.exObjArr[1].exNestedString,
+            },
+            {
+              exNestedString: data.exObjArr[2].exNestedString,
+            },
+          ],
+        }
+      );
+    });
+    test("match works as expected with valid global filter path", () => {
+      const query = gql`
+        query FilterExample {
+          exObjArr(
+            filter: {
+              from: "$.exObj.exNestedObj.exObjNestedArr[1]"
+              match: {
+                exNestedString: "This is an example obj nested string #2"
+              }
+            }
+          ) {
+            exNestedString
+          }
+          exObj @map {
+            exNestedObj(
+              filter: {
+                from: "$.exObjFoo.exNestedObj.exObjNestedString"
+                match: "the quick brown fox"
+              }
+            ) {
+              exObjNestedArr(filter: { match: { exTag2: "faz" } }) {
+                exNestedString
+              }
+            }
+          }
+          exObjBar: exObj @map {
+            exNestedObj(
+              filter: {
+                from: "$.exObjFoo.exNestedObj.exObjNestedString"
+                match: "This is an example obj nested string foo"
+              }
+            ) {
+              exObjNestedString
+              exObjNestedArr(filter: { match: { exTag2: "faz" } }) {
+                exNestedString
+              }
+            }
+          }
+        }
+      `;
+      const result = map(query, data);
+      expect(result).toEqual(
+        //
+        {
+          exObj: {},
+          exObjBar: {
+            exNestedObj: {
+              exObjNestedString: data.exObj.exNestedObj.exObjNestedString,
+              exObjNestedArr: [
+                {
+                  exNestedString:
+                    data.exObj.exNestedObj.exObjNestedArr[0].exNestedString,
+                },
+                {
+                  exNestedString:
+                    data.exObj.exNestedObj.exObjNestedArr[1].exNestedString,
+                },
+              ],
+            },
+          },
+          exObjArr: [
+            {
+              exNestedString: data.exObjArr[0].exNestedString,
+            },
+            {
+              exNestedString: data.exObjArr[1].exNestedString,
+            },
+            {
+              exNestedString: data.exObjArr[2].exNestedString,
+            },
+          ],
+        }
+      );
+    });
+    test("match works as expected with invalid relative filter path", () => {
+      const query = gql`
+        query FilterExample {
+          exObjArr(
+            filter: {
+              from: "exObj"
+              match: { exNestedString: "This is an example nested string" }
+            }
+          ) {
+            exNestedString
+          }
+          exObj @map {
+            exNestedObj(filter: { from: "exNestedInt", match: 1234 }) {
+              exObjNestedArr(filter: { match: { exTag2: "faz" } }) {
+                exNestedString
+              }
+            }
+          }
+          exObjBar: exObj @map {
+            exNestedString
+            exNestedObj(filter: { from: "sunday.icecream", match: "what" }) {
+              exObjNestedString
+              exObjNestedArr(filter: { match: { exTag2: "faz" } }) {
+                exNestedString
+              }
+            }
+          }
+        }
+      `;
+      const result = map(query, data);
+      expect(result).toEqual(
+        //
+        {
+          exObj: {},
+          exObjBar: {
+            exNestedString: data.exObj.exNestedString,
+            // exNestedObj: {
+            //   exObjNestedString: data.exObj.exNestedObj.exObjNestedString,
+            //   exObjNestedArr: [
+            //     {
+            //       exNestedString:
+            //         data.exObj.exNestedObj.exObjNestedArr[0].exNestedString,
+            //     },
+            //     {
+            //       exNestedString:
+            //         data.exObj.exNestedObj.exObjNestedArr[1].exNestedString,
+            //     },
+            //   ],
+            // },
+          },
+          exObjArr: [
+            {
+              exNestedString: data.exObjArr[0].exNestedString,
+            },
+            {
+              exNestedString: data.exObjArr[1].exNestedString,
+            },
+            {
+              exNestedString: data.exObjArr[2].exNestedString,
+            },
+          ],
+        }
+      );
+    });
+    test("match works as expected with invalid global filter path", () => {
+      const query = gql`
+        query FilterExample {
+          exObjArr(
+            filter: {
+              from: "$.exObj.exNestedObj.exObjNestedArr[1]"
+              match: {
+                exNestedString: "This is an example obj nested string #2"
+              }
+            }
+          ) {
+            exNestedString
+          }
+          exObj @map {
+            exNestedObj(
+              filter: {
+                from: "$.exObjFoo.exNestedObj.exObjNestedString"
+                match: "the quick brown fox"
+              }
+            ) {
+              exObjNestedArr(filter: { match: { exTag2: "faz" } }) {
+                exNestedString
+              }
+            }
+          }
+          exObjBar: exObj @map {
+            exNestedString
+            exNestedObj(
+              filter: {
+                from: "$.whats.up.exObjFoo.exNestedObj.exObjNestedString"
+                match: "This is an example obj nested string foo"
+              }
+            ) {
+              exObjNestedString
+              exObjNestedArr(filter: { match: { exTag2: "faz" } }) {
+                exNestedString
+              }
+            }
+          }
+        }
+      `;
+      const result = map(query, data);
+      expect(result).toEqual(
+        //
+        {
+          exObj: {},
+          exObjBar: {
+            exNestedString: data.exObj.exNestedString,
+            // exNestedObj: {
+            //   exObjNestedString: data.exObj.exNestedObj.exObjNestedString,
+            //   exObjNestedArr: [
+            //     {
+            //       exNestedString:
+            //         data.exObj.exNestedObj.exObjNestedArr[0].exNestedString,
+            //     },
+            //     {
+            //       exNestedString:
+            //         data.exObj.exNestedObj.exObjNestedArr[1].exNestedString,
+            //     },
+            //   ],
+            // },
+          },
+          exObjArr: [
+            {
+              exNestedString: data.exObjArr[0].exNestedString,
+            },
+            {
+              exNestedString: data.exObjArr[1].exNestedString,
+            },
+            {
+              exNestedString: data.exObjArr[2].exNestedString,
+            },
+          ],
+        }
+      );
     });
     test("noMatch works as expected", () => {
       const query = gql`
