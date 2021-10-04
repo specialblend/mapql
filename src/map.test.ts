@@ -122,6 +122,7 @@ describe("map", () => {
               exObjNestedFloat
               exObjNestedTrue
               exObjNestedFalse
+              exObjNestedArr
             }
           }
           exObjFoo @map {
@@ -136,6 +137,7 @@ describe("map", () => {
               exObjNestedFloat
               exObjNestedTrue
               exObjNestedFalse
+              exObjNestedArr
             }
           }
           exObjArr @map {
