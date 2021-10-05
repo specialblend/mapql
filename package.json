@@ -16,7 +16,7 @@
     "prebuild": "rm -rf lib",
     "prepublishOnly": "npm run build"
   },
-  "dependencies": {
+  "peerDependenciesMeta": {
     "graphql": "^15.6.0",
     "graphql-anywhere": "^4.2.7",
     "graphql-tag": "^2.12.5",
