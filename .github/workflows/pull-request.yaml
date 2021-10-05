@@ -9,4 +9,6 @@ jobs:
         with:
           node-version: '14'
       - run: npm install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: npm test
