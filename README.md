@@ -318,13 +318,12 @@ query FilterByStateCode {
 query TransformLeases {
     leases @map {
         contractNumber: leaseId @String @concat(before: "#")
-        # transformer ignored on parent node (address)
-        address @toJson {
-            street(from: "street")
+        address @map {
+            street
             streetLine2 @default(to: "N/A")
-            city(from: "city")
-            stateCode(from: "stateCode")
-            zipCode(from: "zipCode") @parseInt
+            city
+            stateCode
+            zipCode @parseInt
         }
     }
     reportMetaJson: reportMeta @toJson
