@@ -12,7 +12,9 @@
   "description": "map, filter, and transform data structures using GraphQL and JSONPath.",
   "scripts": {
     "test": "jest",
-    "build": "tsc"
+    "build": "tsc",
+    "prebuild": "rm -rf lib",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "graphql": "^15.6.0",
