@@ -2,6 +2,28 @@
 
 map, filter, and transform data structures using GraphQL and JSONPath.
 
+## installation
+
+```bash
+# install peerDependencies
+npm install graphql-anywhere graphql-tag rambda jsonpath
+# install package
+npm install --registry=https://npm.pkg.github.com/specialblend @specialblend/mapql
+```
+
+or add `.npmrc`:
+
+```
+registry=https://registry.npmjs.org/
+@specialblend:registry=https://npm.pkg.github.com/specialblend
+```
+
+and run
+
+```bash
+npm install @specialblend/mapql graphql-anywhere graphql-tag rambda jsonpath
+```
+
 ## features
 
 GraphQL query is written in desired result structure, using GraphQL arguments and directives for remapping paths and transforming result values.
