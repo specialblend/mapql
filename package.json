@@ -1,4 +1,26 @@
 {
+  "name": "@specialblend/mapql",
+  "version": "0.0.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "README.md"
+  ],
+  "author": "cj@specialblend.dev",
+  "license": "ISC",
+  "description": "map, filter, and transform data structures using GraphQL and JSONPath.",
+  "scripts": {
+    "test": "jest",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "graphql": "^15.6.0",
+    "graphql-anywhere": "^4.2.7",
+    "graphql-tag": "^2.12.5",
+    "jsonpath": "^1.1.1",
+    "rambda": "^6.9.0"
+  },
   "devDependencies": {
     "@types/jest": "^27.0.2",
     "@types/jsonpath": "^0.2.0",
@@ -8,21 +30,5 @@
     "ts-node": "^10.2.1",
     "typescript": "^4.4.3",
     "yaml": "^1.10.2"
-  },
-  "name": "mapql",
-  "version": "0.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "jest"
-  },
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "graphql": "^15.6.0",
-    "graphql-anywhere": "^4.2.7",
-    "graphql-tag": "^2.12.5",
-    "jsonpath": "^1.1.1",
-    "rambda": "^6.9.0"
   }
 }

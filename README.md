@@ -1,6 +1,6 @@
 # mapql
 
-map and transform data structures using GraphQL and JSONPath.
+map, filter, and transform data structures using GraphQL and JSONPath.
 
 ## features
 
