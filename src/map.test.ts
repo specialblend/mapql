@@ -868,6 +868,92 @@ describe("map", () => {
       //   });
       // });
     });
+    describe("@fromJson", () => {
+      test("it parses valid JSON string", () => {
+        const foo = {
+          bar: "baz",
+          alpha: "bravo",
+          charlie: {
+            delta: "echo",
+            foxtrot: "gulf",
+          },
+        };
+        const data = {
+          foo: JSON.stringify(foo),
+        };
+        const query = gql`
+          query FromJsonExample {
+            foo @fromJson {
+              bar
+              charlie @map {
+                foxtrot
+              }
+            }
+          }
+        `;
+        const result = map(query, data);
+        expect(result).toEqual({
+          foo: {
+            bar: foo.bar,
+            charlie: {
+              foxtrot: foo.charlie.foxtrot,
+            },
+          },
+        });
+      });
+      test("it excludes invalid JSON string", () => {
+        const foo = {
+          bar: "baz",
+          alpha: "bravo",
+          charlie: {
+            delta: "echo",
+            foxtrot: "gulf",
+          },
+        };
+        const data = {
+          foo: JSON.stringify(foo),
+          exString: "just a string",
+          exInt: 1234,
+          exTrue: true,
+          exFalse: false,
+          exNull: null,
+          exObj: {
+            foo: "bar",
+          },
+        };
+        const query = gql`
+          query FromJsonExample {
+            foo @fromJson {
+              bar
+              charlie @map {
+                foxtrot
+              }
+            }
+            exString @fromJson
+            exInt @fromJson
+            exTrue @fromJson
+            exFalse @fromJson
+            exNull @fromJson
+            exObj @fromJson {
+              foo
+            }
+          }
+        `;
+        const result = map(query, data);
+        expect(result).toEqual({
+          foo: {
+            bar: foo.bar,
+            charlie: {
+              foxtrot: foo.charlie.foxtrot,
+            },
+          },
+          exInt: data.exInt,
+          exTrue: data.exTrue,
+          exFalse: data.exFalse,
+          exNull: data.exNull,
+        });
+      });
+    });
     describe("@not", () => {
       test("it casts value to negated boolean", () => {
         const query = gql`

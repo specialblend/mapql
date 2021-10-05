@@ -21,6 +21,7 @@ export const DIRECTIVES: Record<string, CallableFunction> = {
   String: () => (x: any) => String(x),
   Boolean: () => (x: any) => Boolean(x),
   toJson: () => (x: any) => JSON.stringify(x),
+  fromJson: () => (x: any) => parseJson(x),
   not: () => not,
   of: () => of,
   default: (args: any) => defaultTo(args.to),
@@ -45,6 +46,12 @@ function withx(fn: CallableFunction) {
     }
     return () => identity;
   };
+}
+
+function parseJson(x: any) {
+  try {
+    return JSON.parse(String(x));
+  } catch (err) {}
 }
 
 function concatStr(args: Record<string, any>) {

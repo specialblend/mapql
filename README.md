@@ -382,22 +382,25 @@ query TransformLeases {
 
 #### ✅ unit tested
 
-- `@default(to: $any)`: set default value
+- `@default(to: any)`: set default value
 - `@parseInt`: cast numeric string to integer
 - `@parseFloat` cast numeric string to float
 - `@String`: cast value to `string`
 - `@Boolean`: cast value into `boolean`
 - `@toJson`: format value to JSON string
-- `@concat(before: $string, after: $string)`: concatenate string. arguments not mutually exclusive.
+- `@fromJson`: parse value from JSON string
+- `@concat(before?: string, after?: string)`: concatenate string. arguments not mutually exclusive.
 - `@not`: logical not.
 - `@of`: return singleton array of value.
 
 #### ⭕ not unit tested (yet)
 - `@substr(from: $index, len: $index)`: return substring of value.
 - `@slice(from: $index, to: $index)`: slice array.
-- `@add(x: $number)`: add to value.
-- `@sub(x: $number)`: subtract from value.
-- `@mul(x: $number)`: multiply value.
+- `@add(x: number)`: add to value.
+- `@sub(x: number)`: subtract from value.
+- `@mul(x: number)`: multiply value.
+- `@prop(_: string)`: return property of object.
+- `@path(_: string[])`: return path of object.
 - `@head`: return first element of array.
 - `@init`: return all except last element of array.
 - `@tail`: return all except first element of array.
