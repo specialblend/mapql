@@ -9,9 +9,13 @@ import jp from "jsonpath";
 import { isset } from "./util";
 
 function jsonpath(selector: string, data: JsonParent): Maybe<JsonChild> {
-  const [child] = jp.query(data, selector);
-  if (isset(child)) {
-    return child;
+  try {
+    const [child] = jp.query(data, selector);
+    if (isset(child)) {
+      return child;
+    }
+  } catch (err) {
+    throw err;
   }
 }
 
