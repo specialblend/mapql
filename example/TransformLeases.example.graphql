@@ -1,0 +1,13 @@
+query TransformLeases {
+    leases @map {
+        contractNumber: leaseId @String @concat(before: "#")
+        address @map {
+            street
+            streetLine2 @default(to: "N/A")
+            city
+            stateCode
+            zipCode @parseInt
+        }
+    }
+    reportMetaJson: reportMeta @toJson
+}

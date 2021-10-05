@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+
+const fs = require("fs");
+const path = require("path");
+const gql = require("graphql-tag");
+const map = require("../lib/index").default;
+
+function pitch(err) {
+  throw err;
+}
+
+(function main() {
+  try {
+    const [
+      _bin,
+      _script,
+      queryFilename = pitch(new Error("missing query filename")),
+      sourceFilename = pitch(new Error("missing source filename")),
+    ] = process.argv;
+    const queryFilePath = path.resolve(path.resolve("./"), queryFilename);
+    const sourceFilePath = path.resolve(path.resolve("./"), sourceFilename);
+    void (
+      fs.existsSync(queryFilePath) || pitch(new Error("query file not found"))
+    );
+    void (
+      fs.existsSync(sourceFilePath) || pitch(new Error("source file not found"))
+    );
+    const queryString = fs.readFileSync(queryFilePath);
+    const query = gql`
+      ${queryString}
+    `;
+    const source = require(sourceFilePath);
+    const result = map(query, source);
+    if (process.env.PRETTY === "true") {
+      process.stdout.write(JSON.stringify(result, null, 4) + "\n");
+      process.exit(0);
+    }
+    process.stdout.write(JSON.stringify(result) + "\n");
+    process.exit(0);
+  } catch (err) {
+    process.stderr.write(err.message + "\n");
+    process.exit(1);
+  }
+})();
