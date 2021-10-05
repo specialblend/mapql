@@ -17,7 +17,6 @@
     "prepublishOnly": "npm run build"
   },
   "peerDependenciesMeta": {
-    "graphql": "^15.6.0",
     "graphql-anywhere": "^4.2.7",
     "graphql-tag": "^2.12.5",
     "jsonpath": "^1.1.1",
