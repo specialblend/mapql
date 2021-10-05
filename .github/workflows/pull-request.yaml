@@ -1,4 +1,4 @@
-name: npm test
+name: check
 on: pull_request
 jobs:
   test:
