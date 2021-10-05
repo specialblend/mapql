@@ -836,37 +836,37 @@ describe("map", () => {
           exObj: JSON.stringify(data.exObj),
         });
       });
-      test.skip("it ignores directive on parent node", () => {
-        const query = gql`
-          query IgnoresToJsonExample {
-            exString @toJson
-            exInt @toJson
-            exFloat @toJson
-            exTrue @toJson
-            exFalse @toJson
-            exNull @toJson
-            exNumericString @toJson
-            exObj @toJson
-            exObjFoo @toJson {
-              exNestedString
-            }
-          }
-        `;
-        const result = map(query, data);
-        expect(result).toEqual({
-          exString: JSON.stringify(data.exString),
-          exInt: JSON.stringify(data.exInt),
-          exFloat: JSON.stringify(data.exFloat),
-          exTrue: JSON.stringify(data.exTrue),
-          exFalse: JSON.stringify(data.exFalse),
-          exNull: JSON.stringify(data.exNull),
-          exNumericString: JSON.stringify(data.exNumericString),
-          exObj: JSON.stringify(data.exObj),
-          exObjFoo: {
-            exNestedString: data.exObjFoo.exNestedString,
-          },
-        });
-      });
+      // test.skip("it ignores directive on parent node", () => {
+      //   const query = gql`
+      //     query IgnoresToJsonExample {
+      //       exString @toJson
+      //       exInt @toJson
+      //       exFloat @toJson
+      //       exTrue @toJson
+      //       exFalse @toJson
+      //       exNull @toJson
+      //       exNumericString @toJson
+      //       exObj @toJson
+      //       exObjFoo @toJson {
+      //         exNestedString
+      //       }
+      //     }
+      //   `;
+      //   const result = map(query, data);
+      //   expect(result).toEqual({
+      //     exString: JSON.stringify(data.exString),
+      //     exInt: JSON.stringify(data.exInt),
+      //     exFloat: JSON.stringify(data.exFloat),
+      //     exTrue: JSON.stringify(data.exTrue),
+      //     exFalse: JSON.stringify(data.exFalse),
+      //     exNull: JSON.stringify(data.exNull),
+      //     exNumericString: JSON.stringify(data.exNumericString),
+      //     exObj: JSON.stringify(data.exObj),
+      //     exObjFoo: {
+      //       exNestedString: data.exObjFoo.exNestedString,
+      //     },
+      //   });
+      // });
     });
     describe("@not", () => {
       test("it casts value to negated boolean", () => {

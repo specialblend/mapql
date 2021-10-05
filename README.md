@@ -374,7 +374,7 @@ query TransformLeases {
 #### 💡 concepts
 
 - ✅ directives are composable and will execute in **left-to-right** composition order.
-- ⚠️ **due to nature of GraphQL execution**, transformation directives are not available on parent nodes.
+- ⚠️ transformation directives on parent nodes are called **before** child nodes.
 
 ❓ [see example unit test.](example/TransformLeases.example.test.ts)
 

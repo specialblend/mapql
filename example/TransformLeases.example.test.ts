@@ -3,13 +3,12 @@ import gql from "graphql-tag";
 
 import map, { JsonRecord } from "../src";
 
-test.skip("TransformLeases", () => {
+test("TransformLeases", () => {
   const query = gql`
     query TransformLeases {
       leases @map {
         contractNumber: leaseId @String @concat(before: "#")
-        # transformer ignored on parent node (address)
-        address @toJson {
+        address @map {
           street
           streetLine2 @default(to: "N/A")
           city
