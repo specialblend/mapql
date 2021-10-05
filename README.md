@@ -24,6 +24,46 @@ and run
 npm install @specialblend/mapql graphql graphql-anywhere graphql-tag rambda jsonpath
 ```
 
+## API usage example
+
+```typescript
+import gql from "graphql-tag";
+import map from "@specialblend/mapql";
+
+const data = {
+    foo: {
+        bar: "baz",
+        baz: "faz"
+    },
+    // ...
+};
+
+const query = gql`
+    query ExampleFilter {
+        foo {
+            # bar
+            baz
+        }
+    }
+`;
+
+const result = map(query, data);
+```
+
+## bin script usage example
+
+`mapql [queryFile] [sourceFile]`
+
+- `queryFile` .graphql query file
+- `sourceFile` JSON or javascript file exporting object
+
+```bash
+# compact JSON output
+mapql example/TransformLeases.example.graphql example/data.json > example.result.json
+# pretty JSON output
+PRETTY=true mapql example/TransformLeases.example.graphql example/data.json > example.result.json
+```
+
 ## features
 
 GraphQL query is written in desired result structure, using GraphQL arguments and directives for remapping paths and transforming result values.
@@ -426,29 +466,3 @@ query TransformLeases {
 - `@init`: return all except last element of array.
 - `@tail`: return all except first element of array.
 - `@last`: return last element of array.
-
-## usage example
-
-```typescript
-import gql from "graphql-tag";
-import map from "@specialblend/mapql";
-
-const data = {
-    foo: {
-        bar: "baz",
-        baz: "faz"
-    },
-    // ...
-};
-
-const query = gql`
-    query ExampleFilter {
-        foo {
-            # bar
-            baz
-        }
-    }
-`;
-
-const result = map(query, data);
-```

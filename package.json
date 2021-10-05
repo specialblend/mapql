@@ -3,7 +3,11 @@
   "version": "0.1.2",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "bin": {
+    "mapql": "bin/mapql"
+  },
   "files": [
+    "bin",
     "lib",
     "README.md"
   ],
