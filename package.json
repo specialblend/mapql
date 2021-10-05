@@ -7,6 +7,7 @@
     "mapql": "bin/mapql"
   },
   "files": [
+    "bin",
     "lib",
     "README.md"
   ],
