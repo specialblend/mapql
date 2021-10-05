@@ -327,7 +327,7 @@ describe("map", () => {
           exNestedString,
         })),
         foo: {
-          exString: {
+          bar: {
             exNestedStringFoo: data.exObj.exNestedString,
             exNestedObj: {
               exObjNestedStringFoo: data.exObj.exNestedObj.exObjNestedString,
@@ -337,7 +337,7 @@ describe("map", () => {
         alpha: {
           bravo: {
             charlie: {
-              exInt: {
+              baz: {
                 exNestedStringFoo: data.exObjFoo.exNestedString,
                 exNestedObj: {
                   exObjNestedStringFoo:
