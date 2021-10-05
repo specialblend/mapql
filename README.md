@@ -7,7 +7,7 @@ map, filter, and transform data structures using GraphQL and JSONPath.
 ```bash
 # install peerDependencies
 npm install graphql graphql-anywhere graphql-tag rambda jsonpath
-# install package
+# install package from Github packages
 npm install --registry=https://npm.pkg.github.com/specialblend @specialblend/mapql
 ```
 
