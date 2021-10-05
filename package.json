@@ -17,6 +17,7 @@
     "prepublishOnly": "npm run build"
   },
   "peerDependenciesMeta": {
+    "graphql": "^15.6.1",
     "graphql-anywhere": "^4.2.7",
     "graphql-tag": "^2.12.5",
     "jsonpath": "^1.1.1",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@types/jest": "^27.0.2",
     "@types/jsonpath": "^0.2.0",
+    "graphql": "^15.6.1",
     "graphql-anywhere": "^4.2.7",
     "graphql-tag": "^2.12.5",
     "jest": "^27.2.4",
