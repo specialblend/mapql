@@ -1,21 +1,18 @@
-import {
+import type {
   JsonChild,
   JsonParent,
   JsonRecord,
   Maybe,
   PathSelector,
 } from "./contract";
+
 import jp from "jsonpath";
 import { isset } from "./util";
 
 function jsonpath(selector: string, data: JsonParent): Maybe<JsonChild> {
-  try {
-    const [child] = jp.query(data, selector);
-    if (isset(child)) {
-      return child;
-    }
-  } catch (err) {
-    throw err;
+  const [child] = jp.query(data, selector);
+  if (isset(child)) {
+    return child;
   }
 }
 
