@@ -28,7 +28,6 @@ test("GenerateArgoWorkflow", () => {
         defaultValue: "hello world!",
       },
     ],
-    templates: [{}],
   };
   const query = gql`
     query GenerateArgoWorkflow {
