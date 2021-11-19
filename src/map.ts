@@ -1,5 +1,5 @@
-import { DocumentNode } from "graphql";
-import { JsonRecord } from "./contract";
+import type { DocumentNode } from "graphql";
+import type { JsonRecord } from "./contract";
 import graphql from "graphql-anywhere";
 import { exec } from "./exec";
 
