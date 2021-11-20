@@ -1,48 +1,49 @@
-import { Exec, ExecSource, JsonChild, Maybe } from "./contract";
+import type {
+  Exec,
+  ExecSource,
+  HasConst,
+  HasFilter,
+  JsonChild,
+  Maybe,
+} from "./contract";
+
 import { path } from "./path";
 import { filter } from "./filter";
 import { mapDxIds, pipeDx } from "./transform";
 import { fixInfo, isset, orEmpty } from "./util";
 
-function isConst(ex: Exec): any {
+function isConst(ex: Exec): ex is HasConst {
   const {
-    info: {
-      isLeaf,
-      directives: { const: constTag },
-    },
+    info: { isLeaf, directives: { const: _const = {} } = {} },
   } = ex;
-  if (isLeaf && constTag) {
-    const { of: constValue } = constTag;
-    if (isset(constValue)) {
-      return constValue;
-    }
-  }
+  return isLeaf && isset(_const.of);
 }
 
 function shouldExPath(ex: Exec) {
   const {
-    args: { from: pathSelector, filter: filterSelector },
+    args: { from: pathSelector, filter },
     info: {
       isLeaf,
-      directives: { map: mapTag, nomap: noMapTag },
+      directives: { map, nomap },
       field: { directives: directiveNodes = [] },
     },
   } = ex;
 
-  const directiveIds = mapDxIds(directiveNodes);
+  if (isset(nomap)) {
+    return false;
+  }
 
   return (
-    !isset(noMapTag) &&
-    (isLeaf ||
-      pathSelector ||
-      isset(mapTag) ||
-      isset(filterSelector) ||
-      directiveIds.length)
+    isLeaf ||
+    pathSelector ||
+    isset(map) ||
+    isset(filter) ||
+    mapDxIds(directiveNodes).length
   );
 }
 
 function applyEx(fn: (ex: Exec) => any) {
-  return function (
+  return function apply(
     fieldName: string,
     root: any,
     args: any,
@@ -59,77 +60,83 @@ function applyEx(fn: (ex: Exec) => any) {
   };
 }
 
-function execPath(source: ExecSource) {
-  return function (ex: Exec): Maybe<JsonChild> {
-    const { fieldName, root, args, info } = ex;
+function hasFilter(ex: Exec): ex is HasFilter {
+  return isset(ex.args.filter);
+}
+
+function execPath(ex: Exec) {
+  return function select(data: ExecSource) {
+    const {
+      fieldName,
+      root,
+      args: { from },
+    } = ex;
     if (shouldExPath(ex)) {
-      const { from: selector } = args;
-      const pathName = isset(selector) ? selector : fieldName;
-      return path(pathName, source, root);
+      const pathName = isset(from) ? from : fieldName;
+      return path(pathName, data, root);
     }
     return root;
   };
 }
 
-function execFilter(source: ExecSource, child: Maybe<JsonChild>) {
-  return function (ex: Exec): Maybe<JsonChild> {
-    const { root, args } = ex;
-    const { filter: query } = args;
-    if (isset(query)) {
-      const { from, match, noMatch } = query;
+function execFilter(ex: Exec) {
+  return function (data: ExecSource, child: Maybe<JsonChild>) {
+    if (hasFilter(ex)) {
+      const {
+        root,
+        args: {
+          filter: { from, match, noMatch },
+        },
+      } = ex;
+      const filterData = filter(match, noMatch);
       if (isset(from)) {
-        const target = path(from, source, root);
+        const target = path(from, data, root);
         if (isset(target)) {
-          return filter(match, noMatch, target, child);
+          return filterData(target, child);
         }
         return;
       }
       if (isset(child)) {
-        return filter(match, noMatch, child);
+        return filterData(child);
       }
     }
     return child;
   };
 }
-function execTransform(child: Maybe<JsonChild>) {
-  return function (ex: Exec): any {
+
+function execTransform(ex: Exec) {
+  return function transform(child: Maybe<JsonChild>) {
     const {
       info: {
-        directives: { default: defaultTag },
+        directives: { default: { to: fallback } = { to: undefined } },
       },
     } = ex;
-    const exec = pipeDx(ex);
     if (isset(child)) {
-      return exec(child);
+      return pipeDx(ex)(child);
     }
-    if (isset(defaultTag)) {
-      const { to: defaultValue } = defaultTag;
-      if (isset(defaultValue)) {
-        return defaultValue;
-      }
-    }
+    return fallback;
   };
 }
 
-function execConst(source: ExecSource) {
-  return function execConst(ex: Exec) {
-    const constValue = isConst(ex);
-    if (isset(constValue)) {
-      return constValue;
-    }
-  };
+function execConst(ex: HasConst) {
+  const {
+    info: {
+      directives: {
+        const: { of: value },
+      },
+    },
+  } = ex;
+  return value;
 }
 
-export function exec(source: ExecSource) {
+export function exec(data: ExecSource) {
   return applyEx(function exec(ex: Exec): any {
-    const constValue = execConst(source)(ex);
-    if (isset(constValue)) {
-      return constValue;
+    if (isConst(ex)) {
+      return execConst(ex);
     }
-    const selected = execPath(source)(ex);
-    const filtered = execFilter(source, selected)(ex);
-    const transformed = execTransform(filtered)(ex);
-    const [result] = [transformed];
-    return result;
+    const select = execPath(ex);
+    const filter = execFilter(ex);
+    const transform = execTransform(ex);
+    return transform(filter(data, select(data)));
   });
 }

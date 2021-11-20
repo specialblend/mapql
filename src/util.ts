@@ -1,5 +1,5 @@
-import { JsonList, JsonRecord } from "./contract";
-import { ExecInfo } from "graphql-anywhere";
+import type { JsonList, JsonRecord } from "./contract";
+import type { ExecInfo } from "graphql-anywhere";
 
 export function isset<T>(x: T | undefined): x is T {
   return typeof x !== "undefined";
