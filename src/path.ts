@@ -7,7 +7,6 @@ import type {
 } from "./contract";
 
 import jp from "jsonpath";
-import { isset } from "./util";
 
 function jsonpath(
   selector: string,
@@ -16,7 +15,7 @@ function jsonpath(
 ): Maybe<JsonChild> {
   const result = jp.query(data, selector);
   const [first] = result;
-  if (head && isset(first)) {
+  if (head) {
     return first;
   }
   return result;
