@@ -69,11 +69,11 @@ function execPath(ex: Exec) {
     const {
       fieldName,
       root,
-      args: { from },
+      args: { from, head = true },
     } = ex;
     if (shouldExPath(ex)) {
       const pathName = isset(from) ? from : fieldName;
-      return path(pathName, data, root);
+      return path(pathName, data, root, head);
     }
     return root;
   };
