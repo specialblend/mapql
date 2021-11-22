@@ -7,25 +7,31 @@ import type {
 } from "./contract";
 
 import jp from "jsonpath";
-import { isset } from "./util";
 
-function jsonpath(selector: string, data: JsonParent): Maybe<JsonChild> {
-  const [child] = jp.query(data, selector);
-  if (isset(child)) {
-    return child;
+function jsonpath(
+  selector: string,
+  data: JsonParent,
+  head = true
+): Maybe<JsonChild> {
+  const result = jp.query(data, selector);
+  const [first] = result;
+  if (head) {
+    return first;
   }
+  return result;
 }
 
 export function path(
   selector: PathSelector,
   source: JsonRecord,
-  parent: JsonParent = source
+  parent: JsonParent = source,
+  head = true
 ): Maybe<JsonChild> {
   if (selector === "@") {
     return jsonpath("$", parent);
   }
   if (selector[0] === "$") {
-    return jsonpath(selector, source);
+    return jsonpath(selector, source, head);
   }
-  return jsonpath(selector, parent);
+  return jsonpath(selector, parent, head);
 }

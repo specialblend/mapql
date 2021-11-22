@@ -276,6 +276,61 @@ query GetAddresses2 {
 
 ❓ [see example unit tests.](example/GetAddresses.example.test.ts)
 
+#### using JSONPath on array fields
+
+By default, mapql will return head (first element) of result from JSONPath query. This can be disabled with argument `head: false`, useful when expecting list of values. Default value is `head: true`.
+
+example:
+
+```javascript
+const data = {
+    exampleObj: {
+        exampleStr: "hello world",
+    },
+    destinations: [
+        {
+            array_string: "foo",
+        },
+        {
+            array_string: "bar",
+        },
+        {
+            array_string: "baz",
+        },
+    ],
+}
+```
+
+```graphql
+    query PathHead {
+      exampleStr
+      exampleStrHead(head: true)
+      exampleStrNoHead(head: false)
+      destinationsHead(from: "destinations[*].array_string", head: true)
+      destinationsNoHead(from: "destinations[*].array_string", head: false)
+      destinations(from: "destinations[*].array_string")
+    }
+```
+
+```json
+{
+  "destinations": "foo",
+  "destinationsHead": "foo",
+  "destinationsNoHead": [
+    "foo",
+    "bar",
+    "baz"
+  ],
+  "exampleStr": "hello world",
+  "exampleStrHead": "hello world",
+  "exampleStrNoHead": [
+    "hello world"
+  ]
+}
+```
+
+❓ [see example unit tests.](example/PathHead.example.test.ts)
+
 ### filtering fields
 
 ⭕ query:

@@ -25,6 +25,7 @@ export type ExecSource = JsonRecord;
 export interface ExecArgs {
   from?: PathSelector;
   filter?: Filter;
+  head?: boolean;
 }
 
 export type Exec = {
