@@ -1,5 +1,5 @@
+import type { DirectiveInfo } from "apollo-utilities";
 import type { ExecInfo } from "graphql-anywhere";
-import type { DirectiveInfo } from "apollo-utilities/src/directives";
 
 import { DIRECTIVES } from "./transform";
 
