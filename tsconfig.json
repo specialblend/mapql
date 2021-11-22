@@ -3,7 +3,8 @@
     "src/**/*"
   ],
   "exclude": [
-    "src/**/*.test.*"
+    "src/**/*.test.*",
+    "node_modules/**"
   ],
   "compilerOptions": {
     "declaration": true,
